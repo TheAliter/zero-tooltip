@@ -14,11 +14,14 @@ const defaultTooltipPositions: TooltipPositions = {
 }
 
 const defaultTooltipPosition: TooltipPosition = 'right'
-const defaultTooltipOffset = 10
+const defaultTooltipOffsetFromSource = 10
+const defaultTooltipOffsetFromViewport = 20
+const defaultTooltipMinWidth = 100
+const defaultTooltipMaxWidth = 250
 const defaultArrowSize = 10
-const defaultTooltipClasses = 'absolute opacity-0 inline-block max-w-[15rem] w-fit py-1.5 px-2.5 rounded-md bg-[#495057] shadow-[0_2px_12px_0_rgba(0,0,0,0.1)] box-border'
+const defaultTooltipClasses = 'absolute opacity-0 inline-block w-fit py-1.5 px-2.5 rounded-md bg-[#495057] shadow-[0_2px_12px_0_rgba(0,0,0,0.1)] box-border'
 const defaultTextClasses = 'text-sm text-white whitespace-pre-wrap break-words'
-const defaultArrowClasses = ''
+const defaultArrowClasses = 'absolute border-transparent'
 
 
 const Tooltip = (config?: TooltipConfig): Directive => {
@@ -28,7 +31,10 @@ const Tooltip = (config?: TooltipConfig): Directive => {
         'right': config?.positions?.right ?? defaultTooltipPositions.right,
         'bottom': config?.positions?.bottom ?? defaultTooltipPositions.bottom,
     }
-    const tooltipOffset = config?.offset ?? defaultTooltipOffset
+    const tooltipOffsetFromSource = config?.offsetFromSource ?? defaultTooltipOffsetFromSource
+    const tooltipOffsetFromViewport = config?.offsetFromViewport ?? defaultTooltipOffsetFromViewport
+    const tooltipMinWidth = config?.minWidth ?? defaultTooltipMinWidth
+    const tooltipMaxWidth = config?.maxWidth ?? defaultTooltipMaxWidth
     const tooltipClasses = twMerge(defaultTooltipClasses, config?.tooltipClasses ?? '')
     const textClasses = twMerge(defaultTextClasses, config?.textClasses ?? '')
     const arrowSize = config?.arrowSize ?? defaultArrowSize
@@ -47,8 +53,7 @@ const Tooltip = (config?: TooltipConfig): Directive => {
             // Create arrow element
             const arrowElement = document.createElement('div')
             arrowElement.classList.add(...arrowClasses.split(' '))
-            arrowElement.style.width = `${arrowSize}px`
-            arrowElement.style.height = `${arrowSize}px`
+            arrowElement.style.borderWidth = `${arrowSize/2}px`
 
             // Create tooltip element
             const tooltipElement = document.createElement('div')
@@ -56,10 +61,39 @@ const Tooltip = (config?: TooltipConfig): Directive => {
             tooltipElement.classList.add(...tooltipClasses.split(' '))
             tooltipElement.appendChild(arrowElement)
             tooltipElement.appendChild(textElement)
+
+            function canPositionTooltipOnRight(anchorElementRect: DOMRect) {
+                // Handle horizontal position
+                const anchorElementRight = anchorElementRect.right;
+                tooltipElement.style.left = `${anchorElementRight + tooltipOffsetFromSource}px`
+
+                // Handle width
+                const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (anchorElementRight + tooltipOffsetFromSource) - tooltipOffsetFromViewport, tooltipMaxWidth)
+
+                if (tooltipAvailableMaxWidth < tooltipMinWidth) return false
+
+                tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
+
+                // Handle vertical position
+                const tooltipElementRect = tooltipElement.getBoundingClientRect()
+                let tooltipTop = anchorElementRect.top + (anchorElementRect.height / 2) - (tooltipElementRect.height / 2)
+
+                if (tooltipTop < tooltipOffsetFromViewport) {
+                    tooltipTop = 4
+                }
+
+                tooltipElement.style.top = `${tooltipTop}px`
+
+                return true
+            }
             
             // Show Tooltip element
             anchorElement.addEventListener('mouseenter', () => {
                 const anchorElementRect = anchorElement.getBoundingClientRect()
+
+                // Mount Tooltip element to body
+                const body = document.querySelector('body')
+                body?.appendChild(tooltipElement)
 
                 // Find suitable Tooltip position
                 let hasNeededDisplaySpace = false
@@ -67,33 +101,20 @@ const Tooltip = (config?: TooltipConfig): Directive => {
                     let currentTooltipPosition = tooltipPositions[tooltipPosition][i]
 
                     if (currentTooltipPosition === 'left') {
-                        hasNeededDisplaySpace = canPositionTooltipOnLeft(anchorElementRect, tooltipElement)
+                        hasNeededDisplaySpace = canPositionTooltipOnRight(anchorElementRect)
+                        if (hasNeededDisplaySpace) break
                     }
+
+                    
                 }
 
-
-
-
-
-
-            
-                // Mount Tooltip element to body
-                const body = document.querySelector('body')
-                body?.appendChild(tooltipElement)
+                tooltipElement.style.opacity = '1'
             })
 
             // Hide Tooltip element
             anchorElement.addEventListener('mouseleave', () => hideTooltip())
         },
     }
-}
-
-function canPositionTooltipOnLeft(anchorElementRect: DOMRect, tooltipElement: HTMLElement) {
-    const anchorElementLeft = anchorElementRect.left;
-
-    
-
-    return false;
 }
 
 function hideTooltip() {
