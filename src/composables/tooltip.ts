@@ -59,8 +59,9 @@ const Tooltip = (config?: TooltipConfig): Directive => {
 
             function canPositionTooltipOnRight(anchorElementRect: DOMRect) {
                 const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (anchorElementRect.right + tooltipOffsetFromSource) - tooltipOffsetFromViewport, tooltipMaxWidth)
+                const hasAnchorElementEnoughVerticalOffset = anchorElementRect.top >= tooltipOffsetFromViewport && window.innerHeight - anchorElementRect.bottom >= tooltipOffsetFromViewport
 
-                if (tooltipAvailableMaxWidth < tooltipMinWidth) return false
+                if (tooltipAvailableMaxWidth < tooltipMinWidth || !hasAnchorElementEnoughVerticalOffset) return false
                 
                 const tooltipElementRect = tooltipElement.getBoundingClientRect()
                 let tooltipTop = anchorElementRect.top + (anchorElementRect.height / 2) - (tooltipElementRect.height / 2)
@@ -85,15 +86,16 @@ const Tooltip = (config?: TooltipConfig): Directive => {
                 arrowElement.id = arrowElementId
                 arrowElement.classList.add(...arrowClasses.split(' '))
                 
+                const tooltipElementRect = tooltipElement.getBoundingClientRect()
                 const arrowOffsetFromAnchorMiddleAxis = Math.sin(45 * (180 / Math.PI)) * arrowSize
-                const arrowTop = anchorElementRect.top + (anchorElementRect.height / 2) - arrowOffsetFromAnchorMiddleAxis
+                const arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowOffsetFromAnchorMiddleAxis
                 const arrowLeft = (-arrowSize * 2)
 
                 arrowElement.style.top = `${arrowTop}px`
                 arrowElement.style.left = `${arrowLeft}px`
                 arrowElement.style.borderWidth = `${arrowSize}px`
 
-                document.querySelector(`#${tooltipElementId}`).appendChild(arrowElement)
+                document.querySelector(`#${tooltipElementId}`)?.appendChild(arrowElement)
             }
             
             // Show Tooltip element
@@ -111,6 +113,8 @@ const Tooltip = (config?: TooltipConfig): Directive => {
 
                     if (currentTooltipPosition === 'left') {
                         hasNeededDisplaySpace = canPositionTooltipOnRight(anchorElementRect)
+                        console.log(hasNeededDisplaySpace);
+                        
                         if (hasNeededDisplaySpace) break
                     }
                 }
@@ -128,7 +132,7 @@ const Tooltip = (config?: TooltipConfig): Directive => {
 
 function hideTooltip() {
     const tooltipElement = document.querySelector(`#${tooltipElementId}`)
-    tooltipElement?.querySelector(`#${arrowElementId}`).remove()
+    tooltipElement?.querySelector(`#${arrowElementId}`)?.remove()
     tooltipElement?.remove()
 }
 
