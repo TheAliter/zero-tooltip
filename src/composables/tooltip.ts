@@ -4,6 +4,9 @@ import TooltipConfig from "../types/config"
 import TooltipPosition from "../types/tooltipPosition"
 import TooltipPositions from "../types/tooltipPositions"
 
+const tooltipElementId = 'simple-tooltip'
+const arrowElementId = 'simple-tooltip__arrow'
+
 // For each TooltipPosition define sequence of positions that will be checked when determining where to render Tooltip
 // Meant as fallback positions in case Tooltip do not have enough space in originally set position
 const defaultTooltipPositions: TooltipPositions = {
@@ -18,11 +21,10 @@ const defaultTooltipOffsetFromSource = 10
 const defaultTooltipOffsetFromViewport = 20
 const defaultTooltipMinWidth = 100
 const defaultTooltipMaxWidth = 250
-const defaultArrowSize = 10
 const defaultTooltipClasses = 'absolute opacity-0 inline-block w-fit py-1.5 px-2.5 rounded-md bg-[#495057] shadow-[0_2px_12px_0_rgba(0,0,0,0.1)] box-border'
 const defaultTextClasses = 'text-sm text-white whitespace-pre-wrap break-words'
-const defaultArrowClasses = 'absolute border-transparent'
-
+const defaultArrowSize = 5
+const defaultArrowClasses = 'absolute border-solid border-[#495057]'
 
 const Tooltip = (config?: TooltipConfig): Directive => {
     const tooltipPositions: TooltipPositions =  {
@@ -38,7 +40,6 @@ const Tooltip = (config?: TooltipConfig): Directive => {
     const tooltipClasses = twMerge(defaultTooltipClasses, config?.tooltipClasses ?? '')
     const textClasses = twMerge(defaultTextClasses, config?.textClasses ?? '')
     const arrowSize = config?.arrowSize ?? defaultArrowSize
-    const arrowClasses = twMerge(defaultArrowClasses, config?.arrowClasses ?? '') 
 
     return {
         mounted: (anchorElement: HTMLElement, binding) => {
@@ -50,41 +51,49 @@ const Tooltip = (config?: TooltipConfig): Directive => {
             textElement.classList.add(...textClasses.split(' '))
             textElement.innerText = text
 
-            // Create arrow element
-            const arrowElement = document.createElement('div')
-            arrowElement.classList.add(...arrowClasses.split(' '))
-            arrowElement.style.borderWidth = `${arrowSize/2}px`
-
             // Create tooltip element
             const tooltipElement = document.createElement('div')
-            tooltipElement.id = 'simple-tooltip'
+            tooltipElement.id = tooltipElementId
             tooltipElement.classList.add(...tooltipClasses.split(' '))
-            tooltipElement.appendChild(arrowElement)
             tooltipElement.appendChild(textElement)
 
             function canPositionTooltipOnRight(anchorElementRect: DOMRect) {
-                // Handle horizontal position
-                const anchorElementRight = anchorElementRect.right;
-                tooltipElement.style.left = `${anchorElementRight + tooltipOffsetFromSource}px`
-
-                // Handle width
-                const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (anchorElementRight + tooltipOffsetFromSource) - tooltipOffsetFromViewport, tooltipMaxWidth)
+                const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (anchorElementRect.right + tooltipOffsetFromSource) - tooltipOffsetFromViewport, tooltipMaxWidth)
 
                 if (tooltipAvailableMaxWidth < tooltipMinWidth) return false
-
-                tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
-
-                // Handle vertical position
+                
                 const tooltipElementRect = tooltipElement.getBoundingClientRect()
                 let tooltipTop = anchorElementRect.top + (anchorElementRect.height / 2) - (tooltipElementRect.height / 2)
-
+                
                 if (tooltipTop < tooltipOffsetFromViewport) {
                     tooltipTop = 4
                 }
 
+                const tooltipLeft = anchorElementRect.right + tooltipOffsetFromSource
+
+                tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
                 tooltipElement.style.top = `${tooltipTop}px`
+                tooltipElement.style.left = `${tooltipLeft}px`
 
                 return true
+            }
+
+
+            function drawArrow(anchorElementRect: DOMRect) {
+                const arrowElement = document.createElement('div')
+                const arrowClasses = twMerge(defaultArrowClasses, config?.arrowClasses ?? '', 'border-y-transparent border-l-transparent') 
+                arrowElement.id = arrowElementId
+                arrowElement.classList.add(...arrowClasses.split(' '))
+                
+                const arrowOffsetFromAnchorMiddleAxis = Math.sin(45 * (180 / Math.PI)) * arrowSize
+                const arrowTop = anchorElementRect.top + (anchorElementRect.height / 2) - arrowOffsetFromAnchorMiddleAxis
+                const arrowLeft = (-arrowSize * 2)
+
+                arrowElement.style.top = `${arrowTop}px`
+                arrowElement.style.left = `${arrowLeft}px`
+                arrowElement.style.borderWidth = `${arrowSize}px`
+
+                document.querySelector(`#${tooltipElementId}`).appendChild(arrowElement)
             }
             
             // Show Tooltip element
@@ -104,9 +113,9 @@ const Tooltip = (config?: TooltipConfig): Directive => {
                         hasNeededDisplaySpace = canPositionTooltipOnRight(anchorElementRect)
                         if (hasNeededDisplaySpace) break
                     }
-
-                    
                 }
+
+                drawArrow(anchorElementRect)
 
                 tooltipElement.style.opacity = '1'
             })
@@ -118,7 +127,8 @@ const Tooltip = (config?: TooltipConfig): Directive => {
 }
 
 function hideTooltip() {
-    const tooltipElement = document.querySelector('#simple-tooltip')
+    const tooltipElement = document.querySelector(`#${tooltipElementId}`)
+    tooltipElement?.querySelector(`#${arrowElementId}`).remove()
     tooltipElement?.remove()
 }
 
