@@ -2,10 +2,10 @@ import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
 
-import Tooltip from './composables/tooltip'
+import SimpleTooltip from './composables/tooltip'
 
 const app = createApp(App)
 
-app.directive('tooltip', Tooltip())
+app.directive('tooltip', SimpleTooltip())
 
 app.mount('#app');
