@@ -16,7 +16,7 @@ const defaultTooltipPositions: TooltipPositions = {
     'bottom': ['bottom', 'top', 'right', 'left'],
 }
 
-let defaultTooltipPosition: TooltipPosition = 'top'
+let defaultTooltipPosition: TooltipPosition = 'bottom'
 const defaultTooltipOffsetFromSource = 10
 const defaultTooltipOffsetFromViewport = 20
 const defaultTooltipMinWidth = 100
@@ -25,6 +25,7 @@ const defaultTooltipClasses = 'absolute opacity-0 inline-block w-fit py-1.5 px-2
 const defaultTextClasses = 'text-sm text-white whitespace-pre-wrap break-words'
 const defaultArrowSize = 5
 const defaultArrowClasses = 'absolute border-solid border-[#495057]'
+const defaultMinArrowOffsetFromTooltipCorner = 6
 
 const SimpleTooltip = (config?: TooltipConfig): Directive => {
     if (config?.defaultPosition) {
@@ -45,6 +46,7 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
     const tooltipClasses = twMerge(defaultTooltipClasses, config?.tooltipClasses ?? '')
     const textClasses = twMerge(defaultTextClasses, config?.textClasses ?? '')
     const arrowSize = config?.arrowSize ?? defaultArrowSize
+    const arrowMinOffsetFromTooltipCorner = config?.arrowMinOffsetFromTooltipCorner ?? defaultMinArrowOffsetFromTooltipCorner
 
     return {
         mounted: (anchorElement: HTMLElement, binding) => {
@@ -188,10 +190,13 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
                 const tooltipElementRect = tooltipElement.getBoundingClientRect()
                 const arrowHalfLengthOfLongSide = Math.sin(45 * (180 / Math.PI)) * arrowSize
 
-                let arrowClassForCorrectAngle = ''
+                
                 // Arrow top/left 0 is Tooltip top/left 0
                 let arrowTop = 0
                 let arrowLeft = 0
+
+                let arrowClassForCorrectAngle = ''
+
                 switch (currentTooltipPosition) {
                     case "left": 
                         arrowClassForCorrectAngle = 'border-y-transparent border-r-transparent'
@@ -206,7 +211,9 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
                     case "right":
                         arrowClassForCorrectAngle = 'border-y-transparent border-l-transparent'
                         arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide
+                        if (arrowTop < tooltipElementRect.top + arrowMinOffsetFromTooltipCorner) arrowTop = tooltipElementRect.top + arrowMinOffsetFromTooltipCorner
                         arrowLeft = (-arrowSize * 2)
+                        if (arrowLeft < tooltipElementRect.left + arrowMinOffsetFromTooltipCorner) arrowLeft = tooltipElementRect.left + arrowMinOffsetFromTooltipCorner
                         break;
                     case "bottom":
                         arrowClassForCorrectAngle = 'border-x-transparent border-t-transparent'
@@ -214,6 +221,16 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
                         arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide
                         break;
                 }               
+
+                if (currentTooltipPosition === 'left' || currentTooltipPosition === 'right') {
+                    if (!isArrowPositionWithinLimits(currentTooltipPosition, tooltipElementRect, arrowTop)) {
+                        arrowTop = getArrowPositionMinLimit(currentTooltipPosition, tooltipElementRect, arrowTop)
+                    }
+                } else {
+                    if (!isArrowPositionWithinLimits(currentTooltipPosition, tooltipElementRect, arrowLeft)) {
+                        arrowLeft = getArrowPositionMinLimit(currentTooltipPosition, tooltipElementRect, arrowLeft)
+                    }
+                }
 
                 // Set Arrow element id, styling/angle
                 const arrowClasses = twMerge(defaultArrowClasses, config?.arrowClasses ?? '', arrowClassForCorrectAngle) 
@@ -227,6 +244,42 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
 
                 // Mount Arrow element
                 document.querySelector(`#${tooltipElementId}`)?.appendChild(arrowElement)
+            }
+
+            function isArrowPositionWithinLimits(currentTooltipPosition: TooltipPosition, tooltipElementRect: DOMRect, arrowPosition: number) {
+                switch (currentTooltipPosition) {
+                    case "left":
+                    case "right":
+                        return arrowPosition > arrowMinOffsetFromTooltipCorner 
+                                && arrowPosition < tooltipElementRect.height - arrowMinOffsetFromTooltipCorner - (arrowSize * 2)
+                    case "top":
+                    case "bottom":
+                        return arrowPosition > arrowMinOffsetFromTooltipCorner 
+                                && arrowPosition < tooltipElementRect.width - arrowMinOffsetFromTooltipCorner - (arrowSize * 2)
+                }
+            }
+
+            function getArrowPositionMinLimit(currentTooltipPosition: TooltipPosition, tooltipElementRect: DOMRect, arrowPosition: number) {
+                switch (currentTooltipPosition) {
+                    case "left":
+                    case "right":
+                        if (arrowPosition < arrowMinOffsetFromTooltipCorner) {
+                            // Arrow too close to viewport top
+                            return arrowMinOffsetFromTooltipCorner
+                        } else {
+                            // Arrow too close to viewport bottom
+                            return tooltipElementRect.height - arrowMinOffsetFromTooltipCorner - (arrowSize * 2)
+                        }
+                    case "top":
+                    case "bottom":
+                        if (arrowPosition < arrowMinOffsetFromTooltipCorner) {
+                            // Arrow too close to viewport left
+                            return arrowMinOffsetFromTooltipCorner
+                        } else {
+                            // Arrow too close to viewport right
+                            return tooltipElementRect.width - arrowMinOffsetFromTooltipCorner - (arrowSize * 2)
+                        }
+                }
             }
             
             // Add listener for showing Tooltip element
