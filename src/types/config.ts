@@ -1,6 +1,8 @@
+import TooltipPosition from "./tooltipPosition"
 import TooltipPositions from "./tooltipPositions"
 
 type TooltipConfig = {
+    'defaultPosition'?: TooltipPosition,
     'positions'?: Partial<TooltipPositions>,
     'offsetFromSource'?: number,
     'offsetFromViewport'?: number,

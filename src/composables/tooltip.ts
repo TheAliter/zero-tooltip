@@ -16,7 +16,7 @@ const defaultTooltipPositions: TooltipPositions = {
     'bottom': ['bottom', 'top', 'right', 'left'],
 }
 
-const defaultTooltipPosition: TooltipPosition = 'right'
+let defaultTooltipPosition: TooltipPosition = 'top'
 const defaultTooltipOffsetFromSource = 10
 const defaultTooltipOffsetFromViewport = 20
 const defaultTooltipMinWidth = 100
@@ -27,6 +27,10 @@ const defaultArrowSize = 5
 const defaultArrowClasses = 'absolute border-solid border-[#495057]'
 
 const SimpleTooltip = (config?: TooltipConfig): Directive => {
+    if (config?.defaultPosition) {
+        defaultTooltipPosition = config.defaultPosition
+    }
+
     // Get Tooltip config
     const tooltipPositions: TooltipPositions =  {
         'left': config?.positions?.left ?? defaultTooltipPositions.left,
@@ -66,8 +70,11 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
                 const isAnchorElementBottomHigherThanOffsetFromViewport = (window.innerHeight - anchorElementRect.bottom) >= tooltipOffsetFromViewport
 
                 if (tooltipAvailableMaxWidth < tooltipMinWidth || !isAnchorElementTopLowerThanOffsetFromViewport || !isAnchorElementBottomHigherThanOffsetFromViewport) return false
-                
-                // Calculate Tooltip position and width
+
+                // Set Tooltip maxWidth
+                tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
+
+                // Calculate Tooltip position
                 const tooltipElementRect = tooltipElement.getBoundingClientRect()
                 let tooltipTop = anchorElementRect.top + (anchorElementRect.height / 2) - (tooltipElementRect.height / 2)
                 
@@ -77,12 +84,11 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
                     tooltipTop = window.innerHeight - tooltipOffsetFromViewport - tooltipElementRect.height
                 }
 
-                const tooltipRight = anchorElementRect.left - tooltipOffsetFromSource
+                const tooltipLeft = anchorElementRect.left - tooltipOffsetFromSource - tooltipElementRect.width
 
-                // Set Tooltip maxWidth and position
-                tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
+                // Set Tooltip position
                 tooltipElement.style.top = `${tooltipTop}px`
-                tooltipElement.style.right = `${tooltipRight}px`
+                tooltipElement.style.left = `${tooltipLeft}px`
 
                 return true
             }
@@ -95,8 +101,12 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
 
                 if (tooltipAvailableMaxWidth < tooltipMinWidth || !isAnchorElementTopLowerThanOffsetFromViewport || !isAnchorElementBottomHigherThanOffsetFromViewport) return false
                 
-                // Calculate Tooltip position and width
+                // Set tooltip maxWidth
+                tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
+
+                // Calculate Tooltip position
                 const tooltipElementRect = tooltipElement.getBoundingClientRect()
+
                 let tooltipTop = anchorElementRect.top + (anchorElementRect.height / 2) - (tooltipElementRect.height / 2)
                 
                 if (tooltipTop < tooltipOffsetFromViewport) {
@@ -104,11 +114,10 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
                 } else if (tooltipTop + tooltipElementRect.height > window.innerHeight - tooltipOffsetFromViewport) {
                     tooltipTop = window.innerHeight - tooltipOffsetFromViewport - tooltipElementRect.height
                 }
-                    
+
                 const tooltipLeft = anchorElementRect.right + tooltipOffsetFromSource
 
-                // Set Tooltip maxWidth and position
-                tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
+                // Set Tooltip position
                 tooltipElement.style.top = `${tooltipTop}px`
                 tooltipElement.style.left = `${tooltipLeft}px`
 
@@ -116,12 +125,6 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
             }
 
             function tryMountTooltipOnTop(anchorElementRect: DOMRect) {
-                // Check if Tooltip has enough available left and right offset from viewport 
-                const isAnchorElementLeftMoreThanOffsetFromViewport = anchorElementRect.left >= tooltipOffsetFromViewport
-                const isAnchorElementRightMoreThanOffsetFromViewport = (window.innerHeight - anchorElementRect.right) >= tooltipOffsetFromViewport
-                
-                if (isAnchorElementLeftMoreThanOffsetFromViewport || isAnchorElementRightMoreThanOffsetFromViewport) return false
-                
                 // Calculate and set Tooltip width
                 const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (tooltipOffsetFromViewport * 2), tooltipMaxWidth)
                 tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
@@ -132,7 +135,7 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
 
                 // Check if Tooltip has enough available on top 
                 if (tooltipTop < tooltipOffsetFromViewport) return false
-                
+
                 // Calculate Tooltip left position
                 let tooltipLeft = anchorElementRect.left + (anchorElementRect.width / 2) - (tooltipElementRect.width / 2)
 
@@ -150,19 +153,13 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
             }
 
             function tryMountTooltipOnBottom(anchorElementRect: DOMRect) {
-                // Check if Tooltip has enough available left and right offset from viewport 
-                const isAnchorElementLeftMoreThanOffsetFromViewport = anchorElementRect.left >= tooltipOffsetFromViewport
-                const isAnchorElementRightMoreThanOffsetFromViewport = (window.innerHeight - anchorElementRect.right) >= tooltipOffsetFromViewport
-                
-                if (isAnchorElementLeftMoreThanOffsetFromViewport || isAnchorElementRightMoreThanOffsetFromViewport) return false
-                
                 // Calculate and set Tooltip width
                 const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (tooltipOffsetFromViewport * 2), tooltipMaxWidth)
                 tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
 
                 // Calculate Tooltip top position
                 const tooltipElementRect = tooltipElement.getBoundingClientRect()
-                let tooltipTop = anchorElementRect.bottom + tooltipOffsetFromSource + tooltipElementRect.height 
+                let tooltipTop = anchorElementRect.bottom + tooltipOffsetFromSource 
 
                 // Check if Tooltip has enough available on bottom 
                 if (tooltipTop + tooltipElementRect.height > window.innerHeight - tooltipOffsetFromViewport) return false
@@ -183,19 +180,46 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
                 return true
             }
 
-            function drawArrow(anchorElementRect: DOMRect) {
+            function drawArrow(anchorElementRect: DOMRect, currentTooltipPosition: TooltipPosition) {
                 // Create Arrow element
                 const arrowElement = document.createElement('div')
-                const arrowClasses = twMerge(defaultArrowClasses, config?.arrowClasses ?? '', 'border-y-transparent border-l-transparent') 
+
+                // Calculate Arrow element size, positions and style/angle classes
+                const tooltipElementRect = tooltipElement.getBoundingClientRect()
+                const arrowHalfLengthOfLongSide = Math.sin(45 * (180 / Math.PI)) * arrowSize
+
+                let arrowClassForCorrectAngle = ''
+                // Arrow top/left 0 is Tooltip top/left 0
+                let arrowTop = 0
+                let arrowLeft = 0
+                switch (currentTooltipPosition) {
+                    case "left": 
+                        arrowClassForCorrectAngle = 'border-y-transparent border-r-transparent'
+                        arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide
+                        arrowLeft = tooltipElementRect.width
+                        break;
+                    case "top":
+                        arrowClassForCorrectAngle = 'border-x-transparent border-b-transparent'
+                        arrowTop = tooltipElementRect.height
+                        arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide
+                        break;
+                    case "right":
+                        arrowClassForCorrectAngle = 'border-y-transparent border-l-transparent'
+                        arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide
+                        arrowLeft = (-arrowSize * 2)
+                        break;
+                    case "bottom":
+                        arrowClassForCorrectAngle = 'border-x-transparent border-t-transparent'
+                        arrowTop = (-arrowSize * 2)
+                        arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide
+                        break;
+                }               
+
+                // Set Arrow element id, styling/angle
+                const arrowClasses = twMerge(defaultArrowClasses, config?.arrowClasses ?? '', arrowClassForCorrectAngle) 
                 arrowElement.id = arrowElementId
                 arrowElement.classList.add(...arrowClasses.split(' '))
                 
-                // Calculate Arrow element size and position
-                const tooltipElementRect = tooltipElement.getBoundingClientRect()
-                const arrowOffsetFromAnchorMiddleAxis = Math.sin(45 * (180 / Math.PI)) * arrowSize
-                const arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowOffsetFromAnchorMiddleAxis
-                const arrowLeft = (-arrowSize * 2)
-
                 // Set Arrow element size and position
                 arrowElement.style.top = `${arrowTop}px`
                 arrowElement.style.left = `${arrowLeft}px`
@@ -215,8 +239,11 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
 
                 // Find suitable Tooltip position
                 let hasNeededDisplaySpace = false
+                let currentTooltipPosition = tooltipPosition
                 for (let i = 0; i < 4; i++) {
-                    let currentTooltipPosition = tooltipPositions[tooltipPosition][i]
+                    currentTooltipPosition = tooltipPositions[tooltipPosition][i]
+
+                    console.log(currentTooltipPosition)
 
                     if (currentTooltipPosition === 'left') {
                         hasNeededDisplaySpace = tryMountTooltipOnLeft(anchorElementRect)
@@ -228,13 +255,13 @@ const SimpleTooltip = (config?: TooltipConfig): Directive => {
                         hasNeededDisplaySpace = tryMountTooltipOnBottom(anchorElementRect)
                     }
 
+                    console.log(hasNeededDisplaySpace)
+
                     if (hasNeededDisplaySpace) break
                 }
 
-                console.log(hasNeededDisplaySpace)
-
                 if (hasNeededDisplaySpace) {
-                    drawArrow(anchorElementRect)
+                    drawArrow(anchorElementRect, currentTooltipPosition)
     
                     tooltipElement.style.opacity = '1'
                 }
