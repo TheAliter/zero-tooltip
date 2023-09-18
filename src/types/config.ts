@@ -8,6 +8,7 @@ type TooltipConfig = {
     'offsetFromViewport'?: number,
     'minWidth'?: number,
     'maxWidth'?: number,
+    'tooltipBorderWidth'?: number,
     'tooltipClasses'?: string,
     'textClasses'?: string,
     'arrowSize'?: number,
