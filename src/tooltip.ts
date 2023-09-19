@@ -1,8 +1,8 @@
 import { Directive } from "vue"
 import { twMerge } from 'tailwind-merge'
-import TooltipConfig from "../types/config"
-import TooltipPosition from "../types/tooltipPosition"
-import TooltipPositions from "../types/tooltipPositions"
+import TooltipConfig from "./types/config"
+import TooltipPosition from "./types/tooltipPosition"
+import TooltipPositions from "./types/tooltipPositions"
 
 const tooltipElementId = 'simple-tooltip'
 const arrowElementId = 'simple-tooltip__arrow'
@@ -31,7 +31,7 @@ const defaultArrowSize = 5
 const defaultArrowClasses = 'absolute border-solid border-[#495057]'
 const defaultMinArrowOffsetFromTooltipCorner = 6
 
-const SimpleTooltip = (config?: TooltipConfig): Directive => {
+const ZeroTooltip = (config?: TooltipConfig): Directive => {
     if (config?.defaultPosition) {
         defaultTooltipPosition = config.defaultPosition
     }
@@ -350,5 +350,4 @@ function hideTooltip() {
     tooltipElement?.remove()
 }
 
-export default SimpleTooltip
-export type { TooltipConfig, TooltipPosition, TooltipPositions }
+export default ZeroTooltip
