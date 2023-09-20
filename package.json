@@ -10,11 +10,12 @@
       "require": "./dist/zero-tooltip.umd.cjs"
     }
   },
+  "./package.json": "./package.json",
   "files": [
     "dist",
     "src"
   ],
-  "version": "0.0.1",
+  "version": "0.0.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
