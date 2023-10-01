@@ -43,7 +43,7 @@ Default position for tooltip is above/on top of the element that is being hovere
 <button v-tooltip:right="'Submits this form'">Submit</button>
 ```
 
-Acceptable arguments are: `left` | `top` | `right` | `bottom`
+Acceptable arguments are: `left` | `top` | `right` | `bottom`. Passing this argument locally, it overrides default tooltip position given as `defaultPosition` when registering directive at the app level.
 
 You can also define default position globally when registering directive at the app level:
 
