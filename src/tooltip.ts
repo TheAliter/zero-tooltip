@@ -216,22 +216,22 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
 
                 switch (currentTooltipPosition) {
                     case "left": 
-                        arrowClassForCorrectAngle = 'zt-border-y-transparent zt-border-r-transparent'
+                        arrowClassForCorrectAngle = '!zt-border-y-transparent !zt-border-r-transparent'
                         arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
                         arrowLeft = tooltipElementRect.width - tooltipBorderWidth
                         break;
                     case "top":
-                        arrowClassForCorrectAngle = 'zt-border-x-transparent zt-border-b-transparent'
+                        arrowClassForCorrectAngle = '!zt-border-x-transparent !zt-border-b-transparent'
                         arrowTop = tooltipElementRect.height - tooltipBorderWidth
                         arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
                         break;
                     case "right":
-                        arrowClassForCorrectAngle = 'zt-border-y-transparent zt-border-l-transparent'
+                        arrowClassForCorrectAngle = '!zt-border-y-transparent !zt-border-l-transparent'
                         arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
                         arrowLeft = (-arrowSize * 2) - tooltipBorderWidth
                         break;
                     case "bottom":
-                        arrowClassForCorrectAngle = 'zt-border-x-transparent zt-border-t-transparent'
+                        arrowClassForCorrectAngle = '!zt-border-x-transparent !zt-border-t-transparent'
                         arrowTop = (-arrowSize * 2) - tooltipBorderWidth
                         arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
                         break;
