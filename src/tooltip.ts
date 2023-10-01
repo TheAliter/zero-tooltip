@@ -22,10 +22,10 @@ const defaultTooltipOffsetFromViewport = 20
 const defaultTooltipMinWidth = 100
 const defaultTooltipMaxWidth = 250
 const defaultTooltipBorderWidth = 0
-const defaultTooltipClasses = 'absolute opacity-0 inline-block w-fit py-1.5 px-2.5 rounded-md bg-[#495057] shadow-[0_2px_12px_0_rgba(0,0,0,0.1)] box-border'
-const defaultTextClasses = 'text-sm text-white whitespace-pre-wrap break-words'
+const defaultTooltipClasses = 'zt-absolute zt-opacity-0 zt-inline-block zt-w-fit zt-py-1.5 zt-px-2.5 zt-rounded-md zt-bg-[#495057] zt-shadow-[0_2px_12px_0_rgba(0,0,0,0.1)] zt-box-border'
+const defaultTextClasses = 'zt-text-sm zt-text-white zt-whitespace-pre-wrap zt-break-words'
 const defaultArrowSize = 5
-const defaultArrowClasses = 'absolute border-solid border-[#495057]'
+const defaultArrowClasses = 'zt-absolute zt-border-solid zt-border-[#495057]'
 const defaultMinArrowOffsetFromTooltipCorner = 6
 
 const ZeroTooltip = (config?: TooltipConfig): Directive => {
@@ -58,12 +58,12 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
     
             // Create Text element
             const textElement = document.createElement('p')
-            textElement.classList.add(textClasses)
+            textElement.classList.add(...textClasses.split(' '))
             textElement.innerText = text
 
             // Create Tooltip element
             const tooltipElement = document.createElement('div')
-            tooltipElement.classList.add(tooltipClasses)
+            tooltipElement.classList.add(...tooltipClasses.split(' '))
             tooltipElement.style.borderWidth = `${tooltipBorderWidth}px`
             tooltipElement.appendChild(textElement)
 
@@ -216,22 +216,22 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
 
                 switch (currentTooltipPosition) {
                     case "left": 
-                        arrowClassForCorrectAngle = 'border-y-transparent border-r-transparent'
+                        arrowClassForCorrectAngle = 'zt-border-y-transparent zt-border-r-transparent'
                         arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
                         arrowLeft = tooltipElementRect.width - tooltipBorderWidth
                         break;
                     case "top":
-                        arrowClassForCorrectAngle = 'border-x-transparent border-b-transparent'
+                        arrowClassForCorrectAngle = 'zt-border-x-transparent zt-border-b-transparent'
                         arrowTop = tooltipElementRect.height - tooltipBorderWidth
                         arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
                         break;
                     case "right":
-                        arrowClassForCorrectAngle = 'border-y-transparent border-l-transparent'
+                        arrowClassForCorrectAngle = 'zt-border-y-transparent zt-border-l-transparent'
                         arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
                         arrowLeft = (-arrowSize * 2) - tooltipBorderWidth
                         break;
                     case "bottom":
-                        arrowClassForCorrectAngle = 'border-x-transparent border-t-transparent'
+                        arrowClassForCorrectAngle = 'zt-border-x-transparent zt-border-t-transparent'
                         arrowTop = (-arrowSize * 2) - tooltipBorderWidth
                         arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
                         break;
@@ -249,7 +249,7 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
 
                 // Set Arrow element id, styling/angle
                 const arrowClasses = arrowElementClass + ' ' + defaultArrowClasses + ' ' + arrowClassForCorrectAngle + ' ' + config?.arrowClasses ?? ''
-                arrowElement.classList.add(arrowClasses)
+                arrowElement.classList.add(...arrowClasses.split(' '))
                 
                 // Set Arrow element size and position
                 arrowElement.style.top = `${arrowTop}px`
