@@ -77,7 +77,7 @@ All above settings are optional.
 | Property | <div style="width:260px">Default value</div> | Type | Details |
 |---|---|---|---|
 | defaultPosition | *top* | TooltipPosition | Postion of tooltip component relative to element that is being hovered |
-| positions | *{ <br> &emsp; 'left': ['left', 'right', 'top', 'bottom'], <br> &emsp; 'top': ['top', 'bottom', 'right', 'left'], <br> &emsp; 'right': ['right', 'left', 'top', 'bottom'], <br> &emsp; 'bottom': ['bottom', 'top', 'right', 'left'], <br> }* | TooltipPositions | Ordered list of fallback positions in case tooltip does not have enough space in default position. If none of given positions will have enough space for tooltip, then it will not be rendered. |
+| positions | *{ <br> &emsp; left: ['left', 'right', 'top', 'bottom'], <br> &emsp; top: ['top', 'bottom', 'right', 'left'], <br> &emsp; right: ['right', 'left', 'top', 'bottom'], <br> &emsp; bottom: ['bottom', 'top', 'right', 'left'], <br> }* | TooltipPositions | Ordered list of fallback positions in case tooltip does not have enough space in default position. If none of given positions will have enough space for tooltip, then it will not be rendered. |
 | offsetFromSource | *10* | number | Tooltip offset in `px` from element that's being hovered *(arrow size is not added to this value)* |
 | offsetFromViewport | *20* | number | Minimal allowed tooltip offset in `px` from viewports sides |
 | minWidth | *100* | number | Minimal tooltip width in `px` that will be allowed to render |

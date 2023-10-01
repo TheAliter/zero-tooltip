@@ -10,10 +10,10 @@ const arrowElementClass = 'zero-tooltip__arrow'
 // For each TooltipPosition define sequence of positions that will be checked when determining where to render Tooltip
 // Meant as fallback positions in case Tooltip do not have enough space in originally set position
 const defaultTooltipPositions: TooltipPositions = {
-    'left': ['left', 'right', 'top', 'bottom'],
-    'top': ['top', 'bottom', 'right', 'left'],
-    'right': ['right', 'left', 'top', 'bottom'],
-    'bottom': ['bottom', 'top', 'right', 'left'],
+    left: ['left', 'right', 'top', 'bottom'],
+    top: ['top', 'bottom', 'right', 'left'],
+    right: ['right', 'left', 'top', 'bottom'],
+    bottom: ['bottom', 'top', 'right', 'left'],
 }
 
 let defaultTooltipPosition: TooltipPosition = 'top'
@@ -35,10 +35,10 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
 
     // Get Tooltip config
     const tooltipPositions: TooltipPositions =  {
-        'left': config?.positions?.left ?? defaultTooltipPositions.left,
-        'top': config?.positions?.top ?? defaultTooltipPositions.top,
-        'right': config?.positions?.right ?? defaultTooltipPositions.right,
-        'bottom': config?.positions?.bottom ?? defaultTooltipPositions.bottom,
+        left: config?.positions?.left ?? defaultTooltipPositions.left,
+        top: config?.positions?.top ?? defaultTooltipPositions.top,
+        right: config?.positions?.right ?? defaultTooltipPositions.right,
+        bottom: config?.positions?.bottom ?? defaultTooltipPositions.bottom,
     }
     const tooltipOffsetFromSource = config?.offsetFromSource ?? defaultTooltipOffsetFromSource
     const tooltipOffsetFromViewport = config?.offsetFromViewport ?? defaultTooltipOffsetFromViewport
