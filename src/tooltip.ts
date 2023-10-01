@@ -1,11 +1,11 @@
 import { Directive } from "vue"
-import { twMerge } from 'tailwind-merge'
 import TooltipConfig from "./types/config"
 import TooltipPosition from "./types/tooltipPosition"
 import TooltipPositions from "./types/tooltipPositions"
 
-const tooltipElementId = 'simple-tooltip'
-const arrowElementId = 'simple-tooltip__arrow'
+const tooltipElementClass = 'zero-tooltip__container'
+const textElementClass = 'zero-tooltip__text'
+const arrowElementClass = 'zero-tooltip__arrow'
 
 // For each TooltipPosition define sequence of positions that will be checked when determining where to render Tooltip
 // Meant as fallback positions in case Tooltip do not have enough space in originally set position
@@ -15,9 +15,6 @@ const defaultTooltipPositions: TooltipPositions = {
     'right': ['right', 'left', 'top', 'bottom'],
     'bottom': ['bottom', 'top', 'right', 'left'],
 }
-
-// TODO: set default styling
-// TODO: publish to npmjs
 
 let defaultTooltipPosition: TooltipPosition = 'top'
 const defaultTooltipOffsetFromSource = 10
@@ -48,8 +45,8 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
     const tooltipMinWidth = config?.minWidth ?? defaultTooltipMinWidth
     const tooltipMaxWidth = config?.maxWidth ?? defaultTooltipMaxWidth
     const tooltipBorderWidth = config?.tooltipBorderWidth ?? defaultTooltipBorderWidth
-    const tooltipClasses = twMerge(defaultTooltipClasses, config?.tooltipClasses ?? '')
-    const textClasses = twMerge(defaultTextClasses, config?.textClasses ?? '')
+    const tooltipClasses = tooltipElementClass + ' ' + defaultTooltipClasses + ' ' + config?.tooltipClasses ?? ''
+    const textClasses = textElementClass + ' ' + defaultTextClasses + ' ' + config?.textClasses ?? ''
     const arrowSize = config?.arrowSize ?? defaultArrowSize
     const arrowMinOffsetFromTooltipCorner = config?.arrowMinOffsetFromTooltipCorner ?? defaultMinArrowOffsetFromTooltipCorner
 
@@ -61,13 +58,12 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
     
             // Create Text element
             const textElement = document.createElement('p')
-            textElement.classList.add(...textClasses.split(' '))
+            textElement.classList.add(textClasses)
             textElement.innerText = text
 
             // Create Tooltip element
             const tooltipElement = document.createElement('div')
-            tooltipElement.id = tooltipElementId
-            tooltipElement.classList.add(...tooltipClasses.split(' '))
+            tooltipElement.classList.add(tooltipClasses)
             tooltipElement.style.borderWidth = `${tooltipBorderWidth}px`
             tooltipElement.appendChild(textElement)
 
@@ -252,9 +248,8 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
                 }
 
                 // Set Arrow element id, styling/angle
-                const arrowClasses = twMerge(defaultArrowClasses, config?.arrowClasses ?? '', arrowClassForCorrectAngle) 
-                arrowElement.id = arrowElementId
-                arrowElement.classList.add(...arrowClasses.split(' '))
+                const arrowClasses = arrowElementClass + ' ' + defaultArrowClasses + ' ' + arrowClassForCorrectAngle + ' ' + config?.arrowClasses ?? ''
+                arrowElement.classList.add(arrowClasses)
                 
                 // Set Arrow element size and position
                 arrowElement.style.top = `${arrowTop}px`
@@ -262,7 +257,7 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
                 arrowElement.style.borderWidth = `${arrowSize}px`
 
                 // Mount Arrow element
-                document.querySelector(`#${tooltipElementId}`)?.appendChild(arrowElement)
+                document.querySelector(`.${tooltipElementClass}`)?.appendChild(arrowElement)
             }
 
             function isArrowPositionWithinLimits(currentTooltipPosition: TooltipPosition, tooltipElementRect: DOMRect, arrowPosition: number) {
@@ -342,10 +337,10 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
 }
 
 function hideTooltip() {
-    const tooltipElement = document.querySelector(`#${tooltipElementId}`)
+    const tooltipElement = document.querySelector(`.${tooltipElementClass}`)
 
     // Remove Arrow element from Tooltip, because it needs to be rebuilt every time Tooltip is showed again
-    tooltipElement?.querySelector(`#${arrowElementId}`)?.remove()
+    tooltipElement?.querySelector(`.${arrowElementClass}`)?.remove()
 
     tooltipElement?.remove()
 }

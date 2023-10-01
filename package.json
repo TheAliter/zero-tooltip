@@ -7,7 +7,8 @@
   "exports": {
     ".": {
       "import": "./dist/zero-tooltip.js",
-      "require": "./dist/zero-tooltip.umd.cjs"
+      "require": "./dist/zero-tooltip.umd.cjs",
+      "types": "./dist/index.d.ts"
     }
   },
   "./package.json": "./package.json",
@@ -15,18 +16,16 @@
     "dist",
     "src"
   ],
-  "version": "0.0.4",
+  "version": "0.0.7",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc && vite build",
+    "build": "vue-tsc && vite build && npx tailwindcss -o ./dist/styles.css --minify",
     "preview": "vite preview"
   },
   "peerDependencies": {
+    "tailwindcss": "^3.3.3",
     "vue": "^3.3.4"
-  },
-  "dependencies": {
-    "tailwind-merge": "^1.14.0"
   },
   "devDependencies": {
     "@types/node": "^20.6.2",
