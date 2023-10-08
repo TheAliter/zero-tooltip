@@ -53,9 +53,11 @@ app.directive('tooltip', ZeroTooltip({
 }))
 ```
 
-Tooltip component is fully customizable by giving config object:
+Tooltip component is fully customizable by giving config object when declaring global tooltip directive:
 ```ts
-app.directive('tooltip', ZeroTooltip({
+import ZeroTooltipConfig from 'zero-tooltip'
+
+const tooltipConfig: ZeroTooltipConfig = {
     defaultPosition: ... ,
     positions: ... ,
     offsetFromSource: ... ,
@@ -68,12 +70,41 @@ app.directive('tooltip', ZeroTooltip({
     arrowSize: ... ,
     arrowClasses: ... ,
     arrowMinOffsetFromTooltipCorner: ... ,
-}))
+}
+
+app.directive('tooltip', ZeroTooltip(tooltipConfig))
 ```
 
 All above settings are optional.
 
-## Config
+Tooltip can be customizable also for each usage (locally) using same config as follows:
+```html
+<template>
+    <button v-tooltip:right="tooltipConfig">Submit</button>
+</template>
+
+<script setup lang="ts">
+import ZeroTooltipLocalConfig from 'zero-tooltip'
+
+const tooltipConfig: ZeroTooltipLocalConfig = {
+    content: 'This is tooltip'
+    defaultPosition: ... ,
+    positions: ... ,
+    offsetFromSource: ... ,
+    offsetFromViewport: ... ,
+    minWidth: ... ,
+    maxWidth: ... ,
+    tooltipBorderWidth: ... ,
+    tooltipClasses: ... ,
+    textClasses: ... ,
+    arrowSize: ... ,
+    arrowClasses: ... ,
+    arrowMinOffsetFromTooltipCorner: ... ,
+}
+</script>
+```
+
+## ZeroTooltipConfig
 | Property | <div style="width:260px">Default value</div> | Type | Details |
 |---|---|---|---|
 | defaultPosition | *top* | TooltipPosition | Postion of tooltip component relative to element that is being hovered |
@@ -88,6 +119,12 @@ All above settings are optional.
 | arrowSize | *5* | number | Lenght of arrow hypotenuse in `px` (arrow is generated using border width property, creating square which gets divided in four triangles, thus `arrowSize` is lenght of square side) |
 | arrowClasses | *undefined* | string | List of classes that will be added to arrow element |
 | arrowMinOffsetFromTooltipCorner | *6* | number | Minimal allowed arrow offset in `px` from tooltip corner. Used in situations when tooltip does not have enough space to be centered relative to element that is being hover, thus arrow is rendered closer to one of the tooltip corners |
+
+## ZeroTooltipLocalConfig
+Same as [ZeroTooltipConfig](#ZeroTooltipConfig) with following additions:
+| Property | <div style="width:260px">Default value</div> | Type | Details |
+|---|---|---|---|
+| content | *undefined* | string | ***REQUIRED***. Tooltip text. Text is rendered as HTML, thus it's possible to give simple HTML structure, e.g., `<h1>Tooltip text</h1>` |
 
 ## Licence
 The licence is MIT, so any extension, forking is welcome. `zero-tooltip` is designed as fully customizable, zero dependency, simple tooltip for Vue.js.
