@@ -16,7 +16,7 @@
     "dist",
     "src"
   ],
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -24,7 +24,7 @@
     "preview": "vite preview"
   },
   "peerDependencies": {
-    "vue": "3.3.4"
+    "vue": "^3.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.1.4",

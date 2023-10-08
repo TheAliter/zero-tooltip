@@ -2,6 +2,9 @@ import { Directive } from "vue"
 import TooltipConfig from "./types/config"
 import TooltipPosition from "./types/tooltipPosition"
 import TooltipPositions from "./types/tooltipPositions"
+import useHideOnScroll from './composables/useHideOnScroll'
+
+const { handleHideOnScroll } = useHideOnScroll()
 
 const tooltipElementClass = 'zero-tooltip__container'
 const textElementClass = 'zero-tooltip__text'
@@ -22,7 +25,7 @@ const defaultTooltipOffsetFromViewport = 20
 const defaultTooltipMinWidth = 100
 const defaultTooltipMaxWidth = 250
 const defaultTooltipBorderWidth = 0
-const defaultTooltipClasses = 'zt-absolute zt-opacity-0 zt-inline-block zt-w-fit zt-py-1.5 zt-px-2.5 zt-rounded-md zt-bg-[#495057] zt-shadow-[0_2px_12px_0_rgba(0,0,0,0.1)] zt-box-border'
+const defaultTooltipClasses = 'zt-fixed zt-opacity-0 zt-inline-block zt-w-fit zt-py-1.5 zt-px-2.5 zt-rounded-md zt-bg-[#495057] zt-shadow-[0_2px_12px_0_rgba(0,0,0,0.1)] zt-box-border'
 const defaultTextClasses = 'zt-text-sm zt-text-white zt-whitespace-pre-wrap zt-break-words'
 const defaultArrowSize = 5
 const defaultArrowClasses = 'zt-absolute zt-border-solid zt-border-[#495057]'
@@ -327,6 +330,7 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
                     drawArrow(anchorElementRect, currentTooltipPosition)
     
                     tooltipElement.style.opacity = '1'
+                    handleHideOnScroll(anchorElement, () => hideTooltip())
                 }
             })
 
