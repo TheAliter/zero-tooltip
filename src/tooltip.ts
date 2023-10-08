@@ -1,8 +1,9 @@
 import { Directive } from "vue"
-import TooltipConfig from "./types/config"
+import TooltipConfig from "./types/tooltipConfig"
 import TooltipPosition from "./types/tooltipPosition"
 import TooltipPositions from "./types/tooltipPositions"
 import useHideOnScroll from './composables/useHideOnScroll'
+import TooltipLocalConfig from "./types/tooltipLocalConfig"
 
 const { handleHideOnScroll } = useHideOnScroll()
 
@@ -37,38 +38,94 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
     }
 
     // Get Tooltip config
-    const tooltipPositions: TooltipPositions =  {
+    let tooltipPositions: TooltipPositions =  {
         left: config?.positions?.left ?? defaultTooltipPositions.left,
         top: config?.positions?.top ?? defaultTooltipPositions.top,
         right: config?.positions?.right ?? defaultTooltipPositions.right,
         bottom: config?.positions?.bottom ?? defaultTooltipPositions.bottom,
     }
-    const tooltipOffsetFromSource = config?.offsetFromSource ?? defaultTooltipOffsetFromSource
-    const tooltipOffsetFromViewport = config?.offsetFromViewport ?? defaultTooltipOffsetFromViewport
-    const tooltipMinWidth = config?.minWidth ?? defaultTooltipMinWidth
-    const tooltipMaxWidth = config?.maxWidth ?? defaultTooltipMaxWidth
-    const tooltipBorderWidth = config?.tooltipBorderWidth ?? defaultTooltipBorderWidth
-    const tooltipClasses = tooltipElementClass + ' ' + defaultTooltipClasses + ' ' + config?.tooltipClasses ?? ''
-    const textClasses = textElementClass + ' ' + defaultTextClasses + ' ' + config?.textClasses ?? ''
-    const arrowSize = config?.arrowSize ?? defaultArrowSize
-    const arrowMinOffsetFromTooltipCorner = config?.arrowMinOffsetFromTooltipCorner ?? defaultMinArrowOffsetFromTooltipCorner
+    let tooltipOffsetFromSource = config?.offsetFromSource ?? defaultTooltipOffsetFromSource
+    let tooltipOffsetFromViewport = config?.offsetFromViewport ?? defaultTooltipOffsetFromViewport
+    let tooltipMinWidth = config?.minWidth ?? defaultTooltipMinWidth
+    let tooltipMaxWidth = config?.maxWidth ?? defaultTooltipMaxWidth
+    let tooltipBorderWidth = config?.tooltipBorderWidth ?? defaultTooltipBorderWidth
+    let tooltipClasses = tooltipElementClass + ' ' + defaultTooltipClasses + ' ' + config?.tooltipClasses ?? ''
+    let textClasses = textElementClass + ' ' + defaultTextClasses + ' ' + config?.textClasses ?? ''
+    let arrowSize = config?.arrowSize ?? defaultArrowSize
+    let arrowMinOffsetFromTooltipCorner = config?.arrowMinOffsetFromTooltipCorner ?? defaultMinArrowOffsetFromTooltipCorner
 
     return {
         mounted: (anchorElement: HTMLElement, binding) => {
             // Get Tooltip position and text
-            const tooltipPosition: TooltipPosition = (binding.arg ?? defaultTooltipPosition) as TooltipPosition
-            const text: string = binding.value
+            let tooltipPosition: TooltipPosition = (binding.arg ?? defaultTooltipPosition) as TooltipPosition
+
+            if (typeof(binding.value) !== 'string') adjustTooltipSettings(binding.value)
+
+            const text: string = getTooltipText(binding.value)
     
             // Create Text element
             const textElement = document.createElement('p')
             textElement.classList.add(...textClasses.split(' '))
-            textElement.innerText = text
+            textElement.innerHTML = text
 
             // Create Tooltip element
             const tooltipElement = document.createElement('div')
             tooltipElement.classList.add(...tooltipClasses.split(' '))
             tooltipElement.style.borderWidth = `${tooltipBorderWidth}px`
             tooltipElement.appendChild(textElement)
+            
+            // Add listener for showing Tooltip element
+            anchorElement.addEventListener('mouseenter', () => {
+                const anchorElementRect = anchorElement.getBoundingClientRect()
+
+                // Mount Tooltip element to body
+                const body = document.querySelector('body')
+                body?.appendChild(tooltipElement)
+
+                // Find suitable Tooltip position
+                let hasNeededDisplaySpace = false
+                let currentTooltipPosition = tooltipPosition
+                for (let i = 0; i < 4; i++) {
+                    currentTooltipPosition = tooltipPositions[tooltipPosition][i]
+
+                    if (currentTooltipPosition === 'left') {
+                        hasNeededDisplaySpace = tryMountTooltipOnLeft(anchorElementRect)
+                    } else if (currentTooltipPosition === 'top') {
+                        hasNeededDisplaySpace = tryMountTooltipOnTop(anchorElementRect)
+                    } else if (currentTooltipPosition === 'right') {
+                        hasNeededDisplaySpace = tryMountTooltipOnRight(anchorElementRect)
+                    } else if (currentTooltipPosition === 'bottom') {
+                        hasNeededDisplaySpace = tryMountTooltipOnBottom(anchorElementRect)
+                    }
+
+                    if (hasNeededDisplaySpace) break
+                }
+
+                if (hasNeededDisplaySpace) {
+                    drawArrow(anchorElementRect, currentTooltipPosition)
+    
+                    tooltipElement.style.opacity = '1'
+                    handleHideOnScroll(anchorElement, () => hideTooltip())
+                }
+            })
+
+            // Add listener for hiding Tooltip element
+            anchorElement.addEventListener('mouseleave', () => hideTooltip())
+
+            // --- Helper functions (placed here because of variables scopes are local (don't wan to use a lot of parameters)) --- //
+            function adjustTooltipSettings(bindingValue: TooltipLocalConfig) {
+                if (bindingValue.defaultPosition) tooltipPosition = bindingValue.defaultPosition
+                if (bindingValue.positions) tooltipPositions = {...tooltipPositions, ...bindingValue.positions}
+                if (bindingValue.offsetFromSource) tooltipOffsetFromSource = bindingValue.offsetFromSource
+                if (bindingValue.offsetFromViewport) tooltipOffsetFromViewport = bindingValue.offsetFromViewport
+                if (bindingValue.minWidth) tooltipMinWidth = bindingValue.minWidth
+                if (bindingValue.maxWidth) tooltipMaxWidth = bindingValue.maxWidth
+                if (bindingValue.tooltipBorderWidth) tooltipBorderWidth = bindingValue.tooltipBorderWidth
+                if (bindingValue.tooltipClasses) tooltipClasses = bindingValue.tooltipClasses
+                if (bindingValue.textClasses) textClasses = bindingValue.textClasses
+                if (bindingValue.arrowSize) arrowSize = bindingValue.arrowSize
+                if (bindingValue.arrowMinOffsetFromTooltipCorner) arrowMinOffsetFromTooltipCorner = bindingValue.arrowMinOffsetFromTooltipCorner
+            }
 
             function tryMountTooltipOnLeft(anchorElementRect: DOMRect) {
                 // Check if Tooltip has enough available horizontal space, top and bottom offset from viewport
@@ -298,44 +355,6 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
                         }
                 }
             }
-            
-            // Add listener for showing Tooltip element
-            anchorElement.addEventListener('mouseenter', () => {
-                const anchorElementRect = anchorElement.getBoundingClientRect()
-
-                // Mount Tooltip element to body
-                const body = document.querySelector('body')
-                body?.appendChild(tooltipElement)
-
-                // Find suitable Tooltip position
-                let hasNeededDisplaySpace = false
-                let currentTooltipPosition = tooltipPosition
-                for (let i = 0; i < 4; i++) {
-                    currentTooltipPosition = tooltipPositions[tooltipPosition][i]
-
-                    if (currentTooltipPosition === 'left') {
-                        hasNeededDisplaySpace = tryMountTooltipOnLeft(anchorElementRect)
-                    } else if (currentTooltipPosition === 'top') {
-                        hasNeededDisplaySpace = tryMountTooltipOnTop(anchorElementRect)
-                    } else if (currentTooltipPosition === 'right') {
-                        hasNeededDisplaySpace = tryMountTooltipOnRight(anchorElementRect)
-                    } else if (currentTooltipPosition === 'bottom') {
-                        hasNeededDisplaySpace = tryMountTooltipOnBottom(anchorElementRect)
-                    }
-
-                    if (hasNeededDisplaySpace) break
-                }
-
-                if (hasNeededDisplaySpace) {
-                    drawArrow(anchorElementRect, currentTooltipPosition)
-    
-                    tooltipElement.style.opacity = '1'
-                    handleHideOnScroll(anchorElement, () => hideTooltip())
-                }
-            })
-
-            // Add listener for hiding Tooltip element
-            anchorElement.addEventListener('mouseleave', () => hideTooltip())
         },
     }
 }
@@ -347,6 +366,22 @@ function hideTooltip() {
     tooltipElement?.querySelector(`.${arrowElementClass}`)?.remove()
 
     tooltipElement?.remove()
+}
+
+function getTooltipText(bindingValue: string | TooltipLocalConfig) {
+    let tooltipText = ''
+
+    if (typeof(bindingValue) === 'string') {
+        tooltipText =  bindingValue
+    } else {
+        tooltipText = bindingValue.content
+    }
+
+    if (!tooltipText) {
+        throw new Error("Please enter valid tooltip value");
+    }
+
+    return tooltipText
 }
 
 export default ZeroTooltip

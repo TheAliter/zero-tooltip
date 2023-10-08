@@ -1,5 +1,5 @@
 import ZeroTooltip from "./tooltip"
-import TooltipConfig from "./types/config"
+import TooltipConfig from "./types/tooltipConfig"
 import TooltipPosition from "./types/tooltipPosition"
 import TooltipPositions from "./types/tooltipPositions"
 
