@@ -6,7 +6,7 @@ import ZeroTooltip from '../src/tooltip'
 const app = createApp(App)
 
 app.directive('tooltip', ZeroTooltip({
-    defaultPosition: 'left'
+    defaultPosition: 'top'
 }))
 
 app.mount('#app')

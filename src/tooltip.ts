@@ -2,10 +2,12 @@ import { Directive } from "vue"
 import TooltipConfig from "./types/tooltipConfig"
 import TooltipPosition from "./types/tooltipPosition"
 import TooltipPositions from "./types/tooltipPositions"
-import useHideOnScroll from './composables/useHideOnScroll'
 import TooltipLocalConfig from "./types/tooltipLocalConfig"
+import useHideOnScroll from './composables/useHideOnScroll'
+import useHideOnResize from "./composables/useHideOnResize"
 
 const { handleHideOnScroll } = useHideOnScroll()
+const { handleHideOnResize, resetResizeReferences } = useHideOnResize()
 
 const tooltipElementClass = 'zero-tooltip__container'
 const textElementClass = 'zero-tooltip__text'
@@ -31,6 +33,7 @@ const defaultTextClasses = 'zt-text-sm zt-text-white zt-whitespace-pre-wrap zt-b
 const defaultArrowSize = 5
 const defaultArrowClasses = 'zt-absolute zt-border-solid zt-border-[#495057]'
 const defaultMinArrowOffsetFromTooltipCorner = 6
+const defaultZIndex = 1
 
 const ZeroTooltip = (config?: TooltipConfig): Directive => {
     if (config?.defaultPosition) {
@@ -53,6 +56,7 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
     let textClasses = textElementClass + ' ' + defaultTextClasses + ' ' + config?.textClasses ?? ''
     let arrowSize = config?.arrowSize ?? defaultArrowSize
     let arrowMinOffsetFromTooltipCorner = config?.arrowMinOffsetFromTooltipCorner ?? defaultMinArrowOffsetFromTooltipCorner
+    let zIndex = config?.zIndex ?? defaultZIndex
 
     return {
         mounted: (anchorElement: HTMLElement, binding) => {
@@ -105,11 +109,14 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
                     drawArrow(anchorElementRect, currentTooltipPosition)
     
                     tooltipElement.style.opacity = '1'
+                    tooltipElement.style.zIndex = zIndex.toString()
+
                     handleHideOnScroll(anchorElement, () => hideTooltip())
+                    handleHideOnResize(anchorElement, () => hideTooltip())
                 }
             })
 
-            // Add listener for hiding Tooltip element
+            // Add listeners for hiding Tooltip element
             anchorElement.addEventListener('mouseleave', () => hideTooltip())
 
             // --- Helper functions (placed here because of variables scopes are local (don't wan to use a lot of parameters)) --- //
@@ -125,6 +132,7 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
                 if (bindingValue.textClasses) textClasses = bindingValue.textClasses
                 if (bindingValue.arrowSize) arrowSize = bindingValue.arrowSize
                 if (bindingValue.arrowMinOffsetFromTooltipCorner) arrowMinOffsetFromTooltipCorner = bindingValue.arrowMinOffsetFromTooltipCorner
+                if (bindingValue.zIndex) zIndex = bindingValue.zIndex
             }
 
             function tryMountTooltipOnLeft(anchorElementRect: DOMRect) {
@@ -268,6 +276,9 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
                 const tooltipElementRect = tooltipElement.getBoundingClientRect()
                 const arrowHalfLengthOfLongSide = Math.sin(45 * (180 / Math.PI)) * arrowSize
 
+                // Adjusts arrow position by `x` pixels to handle browsers sometimes not rendering border in it's full width, e.g., 4.8px instead of 5px
+                const arrowPositionAdjuster = 1;
+
                 // Arrow top/left 0 is Tooltip top/left 0
                 let arrowTop = 0
                 let arrowLeft = 0
@@ -278,21 +289,21 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
                     case "left": 
                         arrowClassForCorrectAngle = '!zt-border-y-transparent !zt-border-r-transparent'
                         arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
-                        arrowLeft = tooltipElementRect.width - tooltipBorderWidth
+                        arrowLeft = tooltipElementRect.width - tooltipBorderWidth - arrowPositionAdjuster
                         break;
                     case "top":
                         arrowClassForCorrectAngle = '!zt-border-x-transparent !zt-border-b-transparent'
-                        arrowTop = tooltipElementRect.height - tooltipBorderWidth
+                        arrowTop = tooltipElementRect.height - tooltipBorderWidth - arrowPositionAdjuster
                         arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
                         break;
                     case "right":
                         arrowClassForCorrectAngle = '!zt-border-y-transparent !zt-border-l-transparent'
                         arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
-                        arrowLeft = (-arrowSize * 2) - tooltipBorderWidth
+                        arrowLeft = (-arrowSize * 2) - tooltipBorderWidth + arrowPositionAdjuster
                         break;
                     case "bottom":
                         arrowClassForCorrectAngle = '!zt-border-x-transparent !zt-border-t-transparent'
-                        arrowTop = (-arrowSize * 2) - tooltipBorderWidth
+                        arrowTop = (-arrowSize * 2) - tooltipBorderWidth + arrowPositionAdjuster
                         arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
                         break;
                 }               
@@ -362,10 +373,18 @@ const ZeroTooltip = (config?: TooltipConfig): Directive => {
 function hideTooltip() {
     const tooltipElement = document.querySelector(`.${tooltipElementClass}`)
 
-    // Remove Arrow element from Tooltip, because it needs to be rebuilt every time Tooltip is showed again
-    tooltipElement?.querySelector(`.${arrowElementClass}`)?.remove()
+    if (tooltipElement && tooltipElement instanceof HTMLElement) {
+        resetResizeReferences()
 
-    tooltipElement?.remove()
+        // Remove Arrow element from Tooltip, because it needs to be rebuilt every time Tooltip is showed again
+        tooltipElement.querySelector(`.${arrowElementClass}`)?.remove()
+    
+        // Reset position so that old position does not effect new position (when zooming old position could be off screen)
+        tooltipElement.style.left = '0'
+        tooltipElement.style.top = '0'
+    
+        tooltipElement.remove()
+    }
 }
 
 function getTooltipText(bindingValue: string | TooltipLocalConfig) {

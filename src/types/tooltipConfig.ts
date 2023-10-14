@@ -13,7 +13,8 @@ type TooltipConfig = {
     textClasses?: string,
     arrowSize?: number,
     arrowClasses?: string,
-    arrowMinOffsetFromTooltipCorner?: number
+    arrowMinOffsetFromTooltipCorner?: number,
+    zIndex?: number
 }
 
 export default TooltipConfig

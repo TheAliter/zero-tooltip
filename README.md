@@ -70,6 +70,7 @@ const tooltipConfig: ZeroTooltipConfig = {
     arrowSize: ... ,
     arrowClasses: ... ,
     arrowMinOffsetFromTooltipCorner: ... ,
+    zIndex: ...
 }
 
 app.directive('tooltip', ZeroTooltip(tooltipConfig))
@@ -100,6 +101,7 @@ const tooltipConfig: ZeroTooltipLocalConfig = {
     arrowSize: ... ,
     arrowClasses: ... ,
     arrowMinOffsetFromTooltipCorner: ... ,
+    zIndex: ...
 }
 </script>
 ```
@@ -107,18 +109,19 @@ const tooltipConfig: ZeroTooltipLocalConfig = {
 ## ZeroTooltipConfig
 | Property | <div style="width:260px">Default value</div> | Type | Details |
 |---|---|---|---|
-| defaultPosition | *top* | TooltipPosition | Postion of tooltip component relative to element that is being hovered |
+| defaultPosition | *top* | TooltipPosition | Position of tooltip component relative to element that is being hovered |
 | positions | *{ <br> &emsp; left: ['left', 'right', 'top', 'bottom'], <br> &emsp; top: ['top', 'bottom', 'right', 'left'], <br> &emsp; right: ['right', 'left', 'top', 'bottom'], <br> &emsp; bottom: ['bottom', 'top', 'right', 'left'], <br> }* | TooltipPositions | Ordered list of fallback positions in case tooltip does not have enough space in default position. If none of given positions will have enough space for tooltip, then it will not be rendered. |
 | offsetFromSource | *10* | number | Tooltip offset in `px` from element that's being hovered *(arrow size is not added to this value)* |
-| offsetFromViewport | *20* | number | Minimal allowed tooltip offset in `px` from viewports sides |
+| offsetFromViewport | *20* | number | Minimal allowed tooltip offset in `px` from viewport sides |
 | minWidth | *100* | number | Minimal tooltip width in `px` that will be allowed to render |
 | maxWidth | *250* | number | Maximal tooltip width in `px` that will be allowed to render |
 | tooltipBorderWidth | *0* | number | Tooltip container border width in `px` |
 | tooltipClasses | *undefined* | string | List of classes that will be added to tooltip element |  
 | textClasses | *undefined* | string | List of classes that will be added to text element |
-| arrowSize | *5* | number | Lenght of arrow hypotenuse in `px` (arrow is generated using border width property, creating square which gets divided in four triangles, thus `arrowSize` is lenght of square side) |
+| arrowSize | *5* | number | Length of arrow hypotenuse in `px` (arrow is generated using border width property, creating square which gets divided in four triangles, thus `arrowSize` is length of square side) |
 | arrowClasses | *undefined* | string | List of classes that will be added to arrow element |
 | arrowMinOffsetFromTooltipCorner | *6* | number | Minimal allowed arrow offset in `px` from tooltip corner. Used in situations when tooltip does not have enough space to be centered relative to element that is being hover, thus arrow is rendered closer to one of the tooltip corners |
+| zIndex | *1* | number | `z-index` css property value of tooltip |
 
 ## ZeroTooltipLocalConfig
 Same as [ZeroTooltipConfig](#ZeroTooltipConfig) with following additions:
@@ -126,5 +129,5 @@ Same as [ZeroTooltipConfig](#ZeroTooltipConfig) with following additions:
 |---|---|---|---|
 | content | *undefined* | string | ***REQUIRED***. Tooltip text. Text is rendered as HTML, thus it's possible to give simple HTML structure, e.g., `<h1>Tooltip text</h1>` |
 
-## Licence
-The licence is MIT, so any extension, forking is welcome. `zero-tooltip` is designed as fully customizable, zero dependency, simple tooltip for Vue.js.
+## License
+The license is MIT, so any extension, forking is welcome. `zero-tooltip` is designed as fully customizable, zero dependency, simple tooltip for Vue.js.
