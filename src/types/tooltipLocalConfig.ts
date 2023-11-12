@@ -1,7 +1,8 @@
 import TooltipConfig from "./tooltipConfig"
 
 type TooltipLocalConfig = {
-    content: string
+    content: string,
+    show?: boolean
 } & TooltipConfig
 
 export default TooltipLocalConfig

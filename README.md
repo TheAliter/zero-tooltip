@@ -128,6 +128,7 @@ Same as [ZeroTooltipConfig](#ZeroTooltipConfig) with following additions:
 | Property | <div style="width:260px">Default value</div> | Type | Details |
 |---|---|---|---|
 | content | *undefined* | string | ***REQUIRED***. Tooltip text. Text is rendered as HTML, thus it's possible to give simple HTML structure, e.g., `<h1>Tooltip text</h1>` |
+| show | *true* | boolean | Define whether to show or not to show tooltip |
 
 ## License
 The license is MIT, so any extension, forking is welcome. `zero-tooltip` is designed as fully customizable, zero dependency, simple tooltip for Vue.js.
