@@ -101,7 +101,8 @@ const tooltipConfig: ZeroTooltipLocalConfig = {
     arrowSize: ... ,
     arrowClasses: ... ,
     arrowMinOffsetFromTooltipCorner: ... ,
-    zIndex: ...
+    zIndex: ... ,
+    show: ...
 }
 </script>
 ```

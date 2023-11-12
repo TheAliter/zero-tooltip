@@ -9,6 +9,10 @@
       "import": "./dist/zero-tooltip.js",
       "require": "./dist/zero-tooltip.umd.cjs",
       "types": "./dist/index.d.ts"
+    },
+    "./dist/styles.css": {
+      "import": "./dist/styles.css",
+      "require": "./dist/styles.css"
     }
   },
   "./package.json": "./package.json",
@@ -16,7 +20,7 @@
     "dist",
     "src"
   ],
-  "version": "1.0.4",
+  "version": "1.0.5",
   "type": "module",
   "scripts": {
     "dev": "vite",
