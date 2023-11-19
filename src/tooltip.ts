@@ -1,4 +1,5 @@
 import { Directive, watch } from "vue"
+import { v4 as uuidv4 } from 'uuid'
 import TooltipConfig from "./types/tooltipConfig"
 import TooltipPosition from "./types/tooltipPosition"
 import TooltipPositions from "./types/tooltipPositions"
@@ -36,54 +37,76 @@ const defaultMinArrowOffsetFromTooltipCorner = 6
 const defaultZIndex = 1
 const defaultShouldShow = true
 
-// Tooltip config
-let tooltipText: string
-let tooltipPosition: TooltipPosition
-let tooltipPositions: TooltipPositions
-let tooltipOffsetFromSource: number
-let tooltipOffsetFromViewport: number
-let tooltipMinWidth: number
-let tooltipMaxWidth: number
-let tooltipBorderWidth: number
-let tooltipClasses: string
-let textClasses: string
-let arrowSize: number
-let arrowClasses: string
-let arrowMinOffsetFromTooltipCorner: number
-let zIndex: number
-let shouldShow: boolean
-
-// Tooltip elements
-let anchorElement: HTMLElement
-let tooltipTextElement: HTMLElement
-let tooltipElement: HTMLElement
-
-let isHovered = false
+const tooltips: {[key: string]: ReturnType<typeof initTooltip>} = {}
 
 const ZeroTooltip = (globalConfig?: TooltipConfig): Directive => {
     return {
-        mounted: (targetElement: HTMLElement, binding) => {
-            setTooltipConfig(binding.value, globalConfig, binding.arg as TooltipPosition)
-            initTooltip(targetElement)
+        created: (targetElement: HTMLElement, binding, vnode) => {
+            const uuid = uuidv4()
+            vnode.el.$_tooltip = { uuid: uuid } 
+
+            buildTooltip(binding.value, globalConfig, binding.arg, targetElement, uuid)
 
             if (typeof(binding.value) !== 'string') {
                 watch(binding.value, (newBindingValue) => {
-                    setTooltipConfig(newBindingValue as string | TooltipLocalConfig, globalConfig, binding.arg as TooltipPosition)
-                    initTooltip(targetElement)
+                    if (tooltips[uuid]) {
+                        destroyTooltip(tooltips[uuid])
+                    }
+
+                    buildTooltip(newBindingValue, globalConfig, binding.arg, targetElement, uuid)
                 })
             }
         },
 
-        updated: (targetElement: HTMLElement, binding) => {
+        updated: (targetElement: HTMLElement, binding, vnode) => {
             if (typeof(binding.value) === 'string') {
-                setTooltipConfig(binding.value, globalConfig, binding.arg as TooltipPosition)
-                initTooltip(targetElement)
+                const uuid = vnode.el.$_tooltip.uuid
+
+                if (tooltips[uuid]) {
+                    destroyTooltip(tooltips[uuid])
+                }
+
+                buildTooltip(binding.value, globalConfig, binding.arg, targetElement, uuid)
+            }
+        },
+
+        beforeUnmount: () => {
+            for (let tooltip of Object.values(tooltips)) {
+               destroyTooltip(tooltip)
             }
         }
     }
 }
 
-function setTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig?: TooltipConfig, position?: TooltipPosition) {
+function buildTooltip(bindingValue: any, globalConfig: TooltipConfig | undefined, bindingArgument: string | undefined, targetElement: HTMLElement, uuid: string) {
+    let tooltipConfig = getTooltipConfig(bindingValue as string | TooltipLocalConfig, globalConfig, bindingArgument as TooltipPosition)
+    const tooltip = initTooltip(targetElement, tooltipConfig, uuid)
+
+    if (targetElement.matches(':hover')) {
+        targetElement.dispatchEvent(new Event('mouseenter'))
+    }
+
+    tooltips[uuid] = tooltip
+}
+
+function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig?: TooltipConfig, position?: TooltipPosition) {
+    // Tooltip config
+    let tooltipText: string | undefined
+    let tooltipPosition: TooltipPosition | undefined
+    let tooltipPositions: TooltipPositions | undefined
+    let tooltipOffsetFromSource: number | undefined
+    let tooltipOffsetFromViewport: number | undefined
+    let tooltipMinWidth: number | undefined
+    let tooltipMaxWidth: number | undefined
+    let tooltipBorderWidth: number | undefined
+    let tooltipClasses: string | undefined
+    let textClasses: string | undefined
+    let arrowSize: number | undefined
+    let arrowClasses: string | undefined
+    let arrowMinOffsetFromTooltipCorner: number | undefined
+    let zIndex: number | undefined
+    let shouldShow: boolean | undefined
+
     tooltipText = getTooltipText(localConfig)
 
     if (typeof(localConfig) !== 'string') {
@@ -120,13 +143,31 @@ function setTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
     if (tooltipMinWidth === undefined) tooltipMinWidth = globalConfig?.minWidth ?? defaultTooltipMinWidth
     if (tooltipMaxWidth === undefined) tooltipMaxWidth = globalConfig?.maxWidth ?? defaultTooltipMaxWidth
     if (tooltipBorderWidth === undefined) tooltipBorderWidth = globalConfig?.tooltipBorderWidth ?? defaultTooltipBorderWidth
-    if (tooltipClasses === undefined) tooltipClasses = tooltipElementClass + ' ' + defaultTooltipClasses + ' ' + globalConfig?.tooltipClasses ?? ''
-    if (textClasses === undefined) textClasses = textElementClass + ' ' + defaultTextClasses + ' ' + globalConfig?.textClasses ?? ''
+    if (tooltipClasses === undefined) tooltipClasses = tooltipElementClass + ' ' + defaultTooltipClasses + ' ' + (globalConfig?.tooltipClasses ?? '')
+    if (textClasses === undefined) textClasses = textElementClass + ' ' + defaultTextClasses + ' ' + (globalConfig?.textClasses ?? '')
     if (arrowSize === undefined) arrowSize = globalConfig?.arrowSize ?? defaultArrowSize
     if (arrowClasses === undefined) arrowClasses = globalConfig?.arrowClasses ?? ''
     if (arrowMinOffsetFromTooltipCorner === undefined) arrowMinOffsetFromTooltipCorner = globalConfig?.arrowMinOffsetFromTooltipCorner ?? defaultMinArrowOffsetFromTooltipCorner
     if (zIndex === undefined) zIndex = globalConfig?.zIndex ?? defaultZIndex
     if (shouldShow === undefined) shouldShow = defaultShouldShow
+
+    return {
+        tooltipText,
+        tooltipPosition,
+        tooltipPositions,
+        tooltipOffsetFromSource,
+        tooltipOffsetFromViewport,
+        tooltipMinWidth,
+        tooltipMaxWidth,
+        tooltipBorderWidth,
+        tooltipClasses,
+        textClasses,
+        arrowSize,
+        arrowClasses,
+        arrowMinOffsetFromTooltipCorner,
+        zIndex,
+        shouldShow
+    }
 }
 
 function getTooltipText(localConfig: string | TooltipLocalConfig) {
@@ -139,40 +180,51 @@ function getTooltipText(localConfig: string | TooltipLocalConfig) {
     return tooltipText
 }
 
-function initTooltip(targetElement: HTMLElement) {
-    anchorElement = targetElement
-    anchorElement.removeEventListener('mouseenter', onMouseEnter)
-    anchorElement.removeEventListener('mouseleave', onMouseLeave)
+function initTooltip(targetElement: HTMLElement, tooltipConfig: ReturnType<typeof getTooltipConfig>, uuid: string) {
+    let anchorElement = targetElement
 
-    createTextElement()
-    createTooltipElement()
+    let tooltipTextElement = createTextElement(tooltipConfig.textClasses, tooltipConfig.tooltipText)
+    let tooltipElement = createTooltipElement(tooltipConfig.tooltipClasses, tooltipConfig.tooltipBorderWidth)
+    tooltipElement.append(tooltipTextElement)
+    tooltipElement.dataset.uuid = uuid
 
-    anchorElement.addEventListener('mouseenter', onMouseEnter)
-    anchorElement.addEventListener('mouseleave', onMouseLeave)
+    const mouseEnterEventController = new AbortController()
+    const mouseLeaveEventController = new AbortController()
 
-    if (isHovered) {
-        anchorElement.dispatchEvent(new Event('mouseleave'))
-        anchorElement.dispatchEvent(new Event('mouseenter'))
+    anchorElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement), { signal: mouseEnterEventController.signal})
+    anchorElement.addEventListener('mouseleave', onMouseLeave, { signal: mouseLeaveEventController.signal})
+
+    return {
+        anchorElement,
+        tooltipConfig,
+        tooltipElement,
+        mouseEnterEventController,
+        mouseLeaveEventController
     }
 }
 
-function createTextElement() {
-    tooltipTextElement = document.createElement('p')
+function createTextElement(textClasses: string, tooltipText: string) {
+    let tooltipTextElement = document.createElement('p')
     tooltipTextElement.classList.add(...textClasses.trim().split(' '))
     tooltipTextElement.innerHTML = tooltipText
+
+    return tooltipTextElement
 }
 
-function createTooltipElement() {
-   tooltipElement = document.createElement('div')
+function createTooltipElement(tooltipClasses: string, tooltipBorderWidth: number) {
+   let tooltipElement = document.createElement('div')
    tooltipElement.classList.add(...tooltipClasses.trim().split(' '))
    tooltipElement.style.borderWidth = `${tooltipBorderWidth}px`
-   tooltipElement.appendChild(tooltipTextElement)
+
+   return tooltipElement
 }
 
-function onMouseEnter() {
-    isHovered = true
-
-    if (!shouldShow) return 
+function onMouseEnter(
+    anchorElement: HTMLElement, 
+        tooltipConfig: ReturnType<typeof getTooltipConfig>, 
+        tooltipElement: HTMLDivElement
+    ) {
+    if (!tooltipConfig.shouldShow) return 
 
     const anchorElementRect = anchorElement.getBoundingClientRect()
 
@@ -182,28 +234,28 @@ function onMouseEnter() {
 
     // Find suitable Tooltip position
     let hasNeededDisplaySpace = false
-    let currentTooltipPosition = tooltipPosition
+    let currentTooltipPosition = tooltipConfig.tooltipPosition
     for (let i = 0; i < 4; i++) {
-        currentTooltipPosition = tooltipPositions[tooltipPosition][i]
+        currentTooltipPosition = tooltipConfig.tooltipPositions[tooltipConfig.tooltipPosition][i]
 
         if (currentTooltipPosition === 'left') {
-            hasNeededDisplaySpace = tryMountTooltipOnLeft(anchorElementRect)
+            hasNeededDisplaySpace = tryMountTooltipOnLeft(anchorElementRect, tooltipConfig, tooltipElement)
         } else if (currentTooltipPosition === 'top') {
-            hasNeededDisplaySpace = tryMountTooltipOnTop(anchorElementRect)
+            hasNeededDisplaySpace = tryMountTooltipOnTop(anchorElementRect, tooltipConfig, tooltipElement)
         } else if (currentTooltipPosition === 'right') {
-            hasNeededDisplaySpace = tryMountTooltipOnRight(anchorElementRect)
+            hasNeededDisplaySpace = tryMountTooltipOnRight(anchorElementRect, tooltipConfig, tooltipElement)
         } else if (currentTooltipPosition === 'bottom') {
-            hasNeededDisplaySpace = tryMountTooltipOnBottom(anchorElementRect)
+            hasNeededDisplaySpace = tryMountTooltipOnBottom(anchorElementRect, tooltipConfig, tooltipElement)
         }
 
         if (hasNeededDisplaySpace) break
     }
 
     if (hasNeededDisplaySpace) {
-        drawArrow(anchorElementRect, currentTooltipPosition)
+        drawArrow(anchorElementRect, currentTooltipPosition, tooltipConfig, tooltipElement)
 
         tooltipElement.style.opacity = '1'
-        tooltipElement.style.zIndex = zIndex.toString()
+        tooltipElement.style.zIndex = tooltipConfig.zIndex.toString()
 
         handleHideOnScroll(anchorElement, () => hideTooltip())
         handleHideOnResize(anchorElement, () => hideTooltip())
@@ -214,13 +266,13 @@ function onMouseLeave() {
     hideTooltip()
 }
 
-function tryMountTooltipOnLeft(anchorElementRect: DOMRect) {
+function tryMountTooltipOnLeft(anchorElementRect: DOMRect, tooltipConfig: ReturnType<typeof getTooltipConfig>, tooltipElement: HTMLDivElement) {
     // Check if Tooltip has enough available horizontal space, top and bottom offset from viewport
-    const tooltipAvailableMaxWidth = Math.min(anchorElementRect.left - tooltipOffsetFromSource - tooltipOffsetFromViewport, tooltipMaxWidth)
-    const isAnchorElementTopLowerThanOffsetFromViewport = anchorElementRect.top >= tooltipOffsetFromViewport
-    const isAnchorElementBottomHigherThanOffsetFromViewport = (window.innerHeight - anchorElementRect.bottom) >= tooltipOffsetFromViewport
+    const tooltipAvailableMaxWidth = Math.min(anchorElementRect.left - tooltipConfig.tooltipOffsetFromSource - tooltipConfig.tooltipOffsetFromViewport, tooltipConfig.tooltipMaxWidth)
+    const isAnchorElementTopLowerThanOffsetFromViewport = anchorElementRect.top >= tooltipConfig.tooltipOffsetFromViewport
+    const isAnchorElementBottomHigherThanOffsetFromViewport = (window.innerHeight - anchorElementRect.bottom) >= tooltipConfig.tooltipOffsetFromViewport
 
-    if (tooltipAvailableMaxWidth < tooltipMinWidth || !isAnchorElementTopLowerThanOffsetFromViewport || !isAnchorElementBottomHigherThanOffsetFromViewport) return false
+    if (tooltipAvailableMaxWidth < tooltipConfig.tooltipMinWidth || !isAnchorElementTopLowerThanOffsetFromViewport || !isAnchorElementBottomHigherThanOffsetFromViewport) return false
 
     // Set Tooltip maxWidth
     tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
@@ -229,17 +281,17 @@ function tryMountTooltipOnLeft(anchorElementRect: DOMRect) {
     const tooltipElementRect = tooltipElement.getBoundingClientRect()
     let tooltipTop = anchorElementRect.top + (anchorElementRect.height / 2) - (tooltipElementRect.height / 2)
     
-    if (tooltipTop < tooltipOffsetFromViewport) {
-        tooltipTop = tooltipOffsetFromViewport
-    } else if (tooltipTop + tooltipElementRect.height > window.innerHeight - tooltipOffsetFromViewport) {
-        tooltipTop = window.innerHeight - tooltipOffsetFromViewport - tooltipElementRect.height
+    if (tooltipTop < tooltipConfig.tooltipOffsetFromViewport) {
+        tooltipTop = tooltipConfig.tooltipOffsetFromViewport
+    } else if (tooltipTop + tooltipElementRect.height > window.innerHeight - tooltipConfig.tooltipOffsetFromViewport) {
+        tooltipTop = window.innerHeight - tooltipConfig.tooltipOffsetFromViewport - tooltipElementRect.height
     }
 
-    const tooltipLeft = anchorElementRect.left - tooltipOffsetFromSource - tooltipElementRect.width
+    const tooltipLeft = anchorElementRect.left - tooltipConfig.tooltipOffsetFromSource - tooltipElementRect.width
 
     // Check if anchor element is directly on right of Tooltip
-    if (anchorElementRect.bottom < tooltipTop + arrowMinOffsetFromTooltipCorner * 2 
-        || anchorElementRect.top > tooltipTop + tooltipElementRect.height - arrowMinOffsetFromTooltipCorner * 2) return false
+    if (anchorElementRect.bottom < tooltipTop + tooltipConfig.arrowMinOffsetFromTooltipCorner * 2 
+        || anchorElementRect.top > tooltipTop + tooltipElementRect.height - tooltipConfig.arrowMinOffsetFromTooltipCorner * 2) return false
 
     // Set Tooltip position
     tooltipElement.style.top = `${tooltipTop}px`
@@ -248,13 +300,13 @@ function tryMountTooltipOnLeft(anchorElementRect: DOMRect) {
     return true
 }
 
-function tryMountTooltipOnRight(anchorElementRect: DOMRect) {
+function tryMountTooltipOnRight(anchorElementRect: DOMRect, tooltipConfig: ReturnType<typeof getTooltipConfig>, tooltipElement: HTMLDivElement) {
     // Check if Tooltip has enough available horizontal space, top and bottom offset from viewport
-    const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (anchorElementRect.right + tooltipOffsetFromSource) - tooltipOffsetFromViewport, tooltipMaxWidth)
-    const isAnchorElementTopLowerThanOffsetFromViewport = anchorElementRect.top >= tooltipOffsetFromViewport
-    const isAnchorElementBottomHigherThanOffsetFromViewport = (window.innerHeight - anchorElementRect.bottom) >= tooltipOffsetFromViewport
+    const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (anchorElementRect.right + tooltipConfig.tooltipOffsetFromSource) - tooltipConfig.tooltipOffsetFromViewport, tooltipConfig.tooltipMaxWidth)
+    const isAnchorElementTopLowerThanOffsetFromViewport = anchorElementRect.top >= tooltipConfig.tooltipOffsetFromViewport
+    const isAnchorElementBottomHigherThanOffsetFromViewport = (window.innerHeight - anchorElementRect.bottom) >= tooltipConfig.tooltipOffsetFromViewport
 
-    if (tooltipAvailableMaxWidth < tooltipMinWidth || !isAnchorElementTopLowerThanOffsetFromViewport || !isAnchorElementBottomHigherThanOffsetFromViewport) return false
+    if (tooltipAvailableMaxWidth < tooltipConfig.tooltipMinWidth || !isAnchorElementTopLowerThanOffsetFromViewport || !isAnchorElementBottomHigherThanOffsetFromViewport) return false
     
     // Set tooltip maxWidth
     tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
@@ -264,17 +316,17 @@ function tryMountTooltipOnRight(anchorElementRect: DOMRect) {
 
     let tooltipTop = anchorElementRect.top + (anchorElementRect.height / 2) - (tooltipElementRect.height / 2)
     
-    if (tooltipTop < tooltipOffsetFromViewport) {
-        tooltipTop = tooltipOffsetFromViewport
-    } else if (tooltipTop + tooltipElementRect.height > window.innerHeight - tooltipOffsetFromViewport) {
-        tooltipTop = window.innerHeight - tooltipOffsetFromViewport - tooltipElementRect.height
+    if (tooltipTop < tooltipConfig.tooltipOffsetFromViewport) {
+        tooltipTop = tooltipConfig.tooltipOffsetFromViewport
+    } else if (tooltipTop + tooltipElementRect.height > window.innerHeight - tooltipConfig.tooltipOffsetFromViewport) {
+        tooltipTop = window.innerHeight - tooltipConfig.tooltipOffsetFromViewport - tooltipElementRect.height
     }
 
-    const tooltipLeft = anchorElementRect.right + tooltipOffsetFromSource
+    const tooltipLeft = anchorElementRect.right + tooltipConfig.tooltipOffsetFromSource
 
     // Check if anchor element is directly on left of Tooltip
-    if (anchorElementRect.bottom < tooltipTop + arrowMinOffsetFromTooltipCorner * 2 
-        || anchorElementRect.top > tooltipTop + tooltipElementRect.height - arrowMinOffsetFromTooltipCorner * 2) return false
+    if (anchorElementRect.bottom < tooltipTop + tooltipConfig.arrowMinOffsetFromTooltipCorner * 2 
+        || anchorElementRect.top > tooltipTop + tooltipElementRect.height - tooltipConfig.arrowMinOffsetFromTooltipCorner * 2) return false
 
     // Set Tooltip position
     tooltipElement.style.top = `${tooltipTop}px`
@@ -283,30 +335,30 @@ function tryMountTooltipOnRight(anchorElementRect: DOMRect) {
     return true
 }
 
-function tryMountTooltipOnTop(anchorElementRect: DOMRect) {
+function tryMountTooltipOnTop(anchorElementRect: DOMRect, tooltipConfig: ReturnType<typeof getTooltipConfig>, tooltipElement: HTMLDivElement) {
     // Calculate and set Tooltip width
-    const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (tooltipOffsetFromViewport * 2), tooltipMaxWidth)
+    const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (tooltipConfig.tooltipOffsetFromViewport * 2), tooltipConfig.tooltipMaxWidth)
     tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
 
     // Calculate Tooltip top position
     const tooltipElementRect = tooltipElement.getBoundingClientRect()
-    let tooltipTop = anchorElementRect.top - tooltipOffsetFromSource - tooltipElementRect.height
+    let tooltipTop = anchorElementRect.top - tooltipConfig.tooltipOffsetFromSource - tooltipElementRect.height
 
     // Check if Tooltip has enough available on top 
-    if (tooltipTop < tooltipOffsetFromViewport) return false
+    if (tooltipTop < tooltipConfig.tooltipOffsetFromViewport) return false
 
     // Calculate Tooltip left position
     let tooltipLeft = anchorElementRect.left + (anchorElementRect.width / 2) - (tooltipElementRect.width / 2)
 
-    if (tooltipLeft < tooltipOffsetFromViewport) {
-        tooltipLeft = tooltipOffsetFromViewport
-    } else if (tooltipLeft + tooltipElementRect.width > window.innerWidth - tooltipOffsetFromViewport) {
-        tooltipLeft = window.innerWidth - tooltipOffsetFromViewport - tooltipElementRect.width
+    if (tooltipLeft < tooltipConfig.tooltipOffsetFromViewport) {
+        tooltipLeft = tooltipConfig.tooltipOffsetFromViewport
+    } else if (tooltipLeft + tooltipElementRect.width > window.innerWidth - tooltipConfig.tooltipOffsetFromViewport) {
+        tooltipLeft = window.innerWidth - tooltipConfig.tooltipOffsetFromViewport - tooltipElementRect.width
     }
 
     // Check if anchor element is directly on below of Tooltip
-    if (anchorElementRect.left > tooltipLeft + tooltipElementRect.width - arrowMinOffsetFromTooltipCorner * 2 
-        || anchorElementRect.right < tooltipLeft + arrowMinOffsetFromTooltipCorner * 2) return false
+    if (anchorElementRect.left > tooltipLeft + tooltipElementRect.width - tooltipConfig.arrowMinOffsetFromTooltipCorner * 2 
+        || anchorElementRect.right < tooltipLeft + tooltipConfig.arrowMinOffsetFromTooltipCorner * 2) return false
 
     // Set Tooltip position
     tooltipElement.style.top = `${tooltipTop}px`
@@ -315,30 +367,30 @@ function tryMountTooltipOnTop(anchorElementRect: DOMRect) {
     return true
 }
 
-function tryMountTooltipOnBottom(anchorElementRect: DOMRect) {
+function tryMountTooltipOnBottom(anchorElementRect: DOMRect, tooltipConfig: ReturnType<typeof getTooltipConfig>, tooltipElement: HTMLDivElement) {
     // Calculate and set Tooltip width
-    const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (tooltipOffsetFromViewport * 2), tooltipMaxWidth)
+    const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (tooltipConfig.tooltipOffsetFromViewport * 2), tooltipConfig.tooltipMaxWidth)
     tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
 
     // Calculate Tooltip top position
     const tooltipElementRect = tooltipElement.getBoundingClientRect()
-    let tooltipTop = anchorElementRect.bottom + tooltipOffsetFromSource 
+    let tooltipTop = anchorElementRect.bottom + tooltipConfig.tooltipOffsetFromSource 
 
     // Check if Tooltip has enough available on bottom 
-    if (tooltipTop + tooltipElementRect.height > window.innerHeight - tooltipOffsetFromViewport) return false
+    if (tooltipTop + tooltipElementRect.height > window.innerHeight - tooltipConfig.tooltipOffsetFromViewport) return false
     
     // Calculate Tooltip left position
     let tooltipLeft = anchorElementRect.left + (anchorElementRect.width / 2) - (tooltipElementRect.width / 2)
 
-    if (tooltipLeft < tooltipOffsetFromViewport) {
-        tooltipLeft = tooltipOffsetFromViewport
-    } else if (tooltipLeft + tooltipElementRect.width > window.innerWidth - tooltipOffsetFromViewport) {
-        tooltipLeft = window.innerWidth - tooltipOffsetFromViewport - tooltipElementRect.width
+    if (tooltipLeft < tooltipConfig.tooltipOffsetFromViewport) {
+        tooltipLeft = tooltipConfig.tooltipOffsetFromViewport
+    } else if (tooltipLeft + tooltipElementRect.width > window.innerWidth - tooltipConfig.tooltipOffsetFromViewport) {
+        tooltipLeft = window.innerWidth - tooltipConfig.tooltipOffsetFromViewport - tooltipElementRect.width
     }
 
     // Check if anchor element is directly on top of Tooltip
-    if (anchorElementRect.left > tooltipLeft + tooltipElementRect.width - arrowMinOffsetFromTooltipCorner * 2 
-        || anchorElementRect.right < tooltipLeft + arrowMinOffsetFromTooltipCorner * 2) return false
+    if (anchorElementRect.left > tooltipLeft + tooltipElementRect.width - tooltipConfig.arrowMinOffsetFromTooltipCorner * 2 
+        || anchorElementRect.right < tooltipLeft + tooltipConfig.arrowMinOffsetFromTooltipCorner * 2) return false
 
     // Set Tooltip position
     tooltipElement.style.top = `${tooltipTop}px`
@@ -347,13 +399,13 @@ function tryMountTooltipOnBottom(anchorElementRect: DOMRect) {
     return true
 }
 
-function drawArrow(anchorElementRect: DOMRect, currentTooltipPosition: TooltipPosition) {
+function drawArrow(anchorElementRect: DOMRect, currentTooltipPosition: TooltipPosition, tooltipConfig: ReturnType<typeof getTooltipConfig>, tooltipElement: HTMLDivElement) {
     // Create Arrow element
     const arrowElement = document.createElement('div')
 
     // Calculate Arrow element size, positions and style/angle classes
     const tooltipElementRect = tooltipElement.getBoundingClientRect()
-    const arrowHalfLengthOfLongSide = Math.sin(45 * (180 / Math.PI)) * arrowSize
+    const arrowHalfLengthOfLongSide = Math.sin(45 * (180 / Math.PI)) * tooltipConfig.arrowSize
 
     // Adjusts arrow position by `x` pixels to handle browsers sometimes not rendering border in it's full width, e.g., 4.8px instead of 5px
     const arrowPositionAdjuster = 1;
@@ -367,82 +419,82 @@ function drawArrow(anchorElementRect: DOMRect, currentTooltipPosition: TooltipPo
     switch (currentTooltipPosition) {
         case "left": 
             arrowClassForCorrectAngle = '!zt-border-y-transparent !zt-border-r-transparent'
-            arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
-            arrowLeft = tooltipElementRect.width - tooltipBorderWidth - arrowPositionAdjuster
+            arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide - tooltipConfig.tooltipBorderWidth
+            arrowLeft = tooltipElementRect.width - tooltipConfig.tooltipBorderWidth - arrowPositionAdjuster
             break;
         case "top":
             arrowClassForCorrectAngle = '!zt-border-x-transparent !zt-border-b-transparent'
-            arrowTop = tooltipElementRect.height - tooltipBorderWidth - arrowPositionAdjuster
-            arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
+            arrowTop = tooltipElementRect.height - tooltipConfig.tooltipBorderWidth - arrowPositionAdjuster
+            arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide - tooltipConfig.tooltipBorderWidth
             break;
         case "right":
             arrowClassForCorrectAngle = '!zt-border-y-transparent !zt-border-l-transparent'
-            arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
-            arrowLeft = (-arrowSize * 2) - tooltipBorderWidth + arrowPositionAdjuster
+            arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide - tooltipConfig.tooltipBorderWidth
+            arrowLeft = (-tooltipConfig.arrowSize * 2) - tooltipConfig.tooltipBorderWidth + arrowPositionAdjuster
             break;
         case "bottom":
             arrowClassForCorrectAngle = '!zt-border-x-transparent !zt-border-t-transparent'
-            arrowTop = (-arrowSize * 2) - tooltipBorderWidth + arrowPositionAdjuster
-            arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide - tooltipBorderWidth
+            arrowTop = (-tooltipConfig.arrowSize * 2) - tooltipConfig.tooltipBorderWidth + arrowPositionAdjuster
+            arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide - tooltipConfig.tooltipBorderWidth
             break;
     }               
 
     if (currentTooltipPosition === 'left' || currentTooltipPosition === 'right') {
-        if (!isArrowPositionWithinLimits(currentTooltipPosition, tooltipElementRect, arrowTop)) {
-            arrowTop = getArrowPositionMinLimit(currentTooltipPosition, tooltipElementRect, arrowTop)
+        if (!isArrowPositionWithinLimits(currentTooltipPosition, tooltipElementRect, arrowTop, tooltipConfig)) {
+            arrowTop = getArrowPositionMinLimit(currentTooltipPosition, tooltipElementRect, arrowTop, tooltipConfig)
         }
     } else {
-        if (!isArrowPositionWithinLimits(currentTooltipPosition, tooltipElementRect, arrowLeft)) {
-            arrowLeft = getArrowPositionMinLimit(currentTooltipPosition, tooltipElementRect, arrowLeft)
+        if (!isArrowPositionWithinLimits(currentTooltipPosition, tooltipElementRect, arrowLeft, tooltipConfig)) {
+            arrowLeft = getArrowPositionMinLimit(currentTooltipPosition, tooltipElementRect, arrowLeft, tooltipConfig)
         }
     }
 
     // Set Arrow element id, styling/angle
-    const adjustedArrowClasses = arrowElementClass + ' ' + defaultArrowClasses + ' ' + arrowClassForCorrectAngle + ' ' + arrowClasses
+    const adjustedArrowClasses = arrowElementClass + ' ' + defaultArrowClasses + ' ' + arrowClassForCorrectAngle + ' ' + tooltipConfig.arrowClasses
 
     arrowElement.classList.add(...adjustedArrowClasses.trim().split(' '))
     
     // Set Arrow element size and position
     arrowElement.style.top = `${arrowTop}px`
     arrowElement.style.left = `${arrowLeft}px`
-    arrowElement.style.borderWidth = `${arrowSize}px`
+    arrowElement.style.borderWidth = `${tooltipConfig.arrowSize}px`
 
     // Mount Arrow element
     document.querySelector(`.${tooltipElementClass}`)?.appendChild(arrowElement)
 }
 
-function isArrowPositionWithinLimits(currentTooltipPosition: TooltipPosition, tooltipElementRect: DOMRect, arrowPosition: number) {
+function isArrowPositionWithinLimits(currentTooltipPosition: TooltipPosition, tooltipElementRect: DOMRect, arrowPosition: number, tooltipConfig: ReturnType<typeof getTooltipConfig>) {
     switch (currentTooltipPosition) {
         case "left":
         case "right":
-            return arrowPosition > arrowMinOffsetFromTooltipCorner - tooltipBorderWidth
-                    && arrowPosition < tooltipElementRect.height + tooltipBorderWidth - arrowMinOffsetFromTooltipCorner - (arrowSize * 2)
+            return arrowPosition > tooltipConfig.arrowMinOffsetFromTooltipCorner - tooltipConfig.tooltipBorderWidth
+                    && arrowPosition < tooltipElementRect.height + tooltipConfig.tooltipBorderWidth - tooltipConfig.arrowMinOffsetFromTooltipCorner - (tooltipConfig.arrowSize * 2)
         case "top":
         case "bottom":
-            return arrowPosition > arrowMinOffsetFromTooltipCorner - tooltipBorderWidth
-                    && arrowPosition < tooltipElementRect.width + tooltipBorderWidth - arrowMinOffsetFromTooltipCorner - (arrowSize * 2)
+            return arrowPosition > tooltipConfig.arrowMinOffsetFromTooltipCorner - tooltipConfig.tooltipBorderWidth
+                    && arrowPosition < tooltipElementRect.width + tooltipConfig.tooltipBorderWidth - tooltipConfig.arrowMinOffsetFromTooltipCorner - (tooltipConfig.arrowSize * 2)
     }
 }
 
-function getArrowPositionMinLimit(currentTooltipPosition: TooltipPosition, tooltipElementRect: DOMRect, arrowPosition: number) {
+function getArrowPositionMinLimit(currentTooltipPosition: TooltipPosition, tooltipElementRect: DOMRect, arrowPosition: number, tooltipConfig: ReturnType<typeof getTooltipConfig>) {
     switch (currentTooltipPosition) {
         case "left":
         case "right":
-            if (arrowPosition < arrowMinOffsetFromTooltipCorner - tooltipBorderWidth) {
+            if (arrowPosition < tooltipConfig.arrowMinOffsetFromTooltipCorner - tooltipConfig.tooltipBorderWidth) {
                 // Arrow too close to viewport top
-                return arrowMinOffsetFromTooltipCorner - tooltipBorderWidth
+                return tooltipConfig.arrowMinOffsetFromTooltipCorner - tooltipConfig.tooltipBorderWidth
             } else {
                 // Arrow too close to viewport bottom
-                return tooltipElementRect.height - tooltipBorderWidth - arrowMinOffsetFromTooltipCorner - (arrowSize * 2)
+                return tooltipElementRect.height - tooltipConfig.tooltipBorderWidth - tooltipConfig.arrowMinOffsetFromTooltipCorner - (tooltipConfig.arrowSize * 2)
             }
         case "top":
         case "bottom":
-            if (arrowPosition < arrowMinOffsetFromTooltipCorner - tooltipBorderWidth) {
+            if (arrowPosition < tooltipConfig.arrowMinOffsetFromTooltipCorner - tooltipConfig.tooltipBorderWidth) {
                 // Arrow too close to viewport left
-                return arrowMinOffsetFromTooltipCorner - tooltipBorderWidth
+                return tooltipConfig.arrowMinOffsetFromTooltipCorner - tooltipConfig.tooltipBorderWidth
             } else {
                 // Arrow too close to viewport right
-                return tooltipElementRect.width - tooltipBorderWidth - arrowMinOffsetFromTooltipCorner - (arrowSize * 2)
+                return tooltipElementRect.width - tooltipConfig.tooltipBorderWidth - tooltipConfig.arrowMinOffsetFromTooltipCorner - (tooltipConfig.arrowSize * 2)
             }
     }
 }
@@ -462,8 +514,19 @@ function hideTooltip() {
     
         tooltipElement.remove()
     }
+}
 
-    isHovered = false
+function destroyTooltip(tooltip: ReturnType<typeof initTooltip>) {
+    hideTooltip()
+
+    tooltip.mouseEnterEventController.abort()
+    tooltip.mouseLeaveEventController.abort()
+
+    const uuid = tooltip.tooltipElement.dataset.uuid
+
+    if (uuid) {
+        delete tooltips[uuid]
+    }
 }
 
 export default ZeroTooltip

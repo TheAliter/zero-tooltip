@@ -20,7 +20,7 @@
     "dist",
     "src"
   ],
-  "version": "1.0.5",
+  "version": "1.0.6",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -57,5 +57,9 @@
   "bugs": {
     "url": "https://github.com/TheAliter/zero-tooltip/issues"
   },
-  "homepage": "https://github.com/TheAliter/zero-tooltip#readme"
+  "homepage": "https://github.com/TheAliter/zero-tooltip#readme",
+  "dependencies": {
+    "@types/uuid": "^9.0.7",
+    "uuid": "^9.0.1"
+  }
 }
