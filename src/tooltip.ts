@@ -1,4 +1,4 @@
-import { Directive, watch } from "vue"
+import { Directive, isReactive, watch } from "vue"
 import { v4 as uuidv4 } from 'uuid'
 import TooltipConfig from "./types/tooltipConfig"
 import TooltipPosition from "./types/tooltipPosition"
@@ -47,7 +47,7 @@ const ZeroTooltip = (globalConfig?: TooltipConfig): Directive => {
 
             buildTooltip(binding.value, globalConfig, binding.arg, targetElement, uuid)
 
-            if (typeof(binding.value) !== 'string') {
+            if (typeof(binding.value) !== 'string' && isReactive(binding.value)) {
                 watch(binding.value, (newBindingValue) => {
                     if (tooltips[uuid]) {
                         destroyTooltip(tooltips[uuid])
@@ -59,20 +59,20 @@ const ZeroTooltip = (globalConfig?: TooltipConfig): Directive => {
         },
 
         updated: (targetElement: HTMLElement, binding, vnode) => {
-            if (typeof(binding.value) === 'string') {
-                const uuid = vnode.el.$_tooltip.uuid
+            const uuid = vnode.el.$_tooltip.uuid
 
-                if (tooltips[uuid]) {
-                    destroyTooltip(tooltips[uuid])
-                }
-
-                buildTooltip(binding.value, globalConfig, binding.arg, targetElement, uuid)
+            if (tooltips[uuid]) {
+                destroyTooltip(tooltips[uuid])
             }
+
+            buildTooltip(binding.value, globalConfig, binding.arg, targetElement, uuid)
         },
 
-        beforeUnmount: () => {
-            for (let tooltip of Object.values(tooltips)) {
-               destroyTooltip(tooltip)
+        beforeUnmount: (_, __, vnode) => {
+            const uuid = vnode.el.$_tooltip.uuid
+
+            if (tooltips[uuid]) {
+                destroyTooltip(tooltips[uuid])
             }
         }
     }
@@ -82,11 +82,11 @@ function buildTooltip(bindingValue: any, globalConfig: TooltipConfig | undefined
     let tooltipConfig = getTooltipConfig(bindingValue as string | TooltipLocalConfig, globalConfig, bindingArgument as TooltipPosition)
     const tooltip = initTooltip(targetElement, tooltipConfig, uuid)
 
+    tooltips[uuid] = tooltip
+
     if (targetElement.matches(':hover')) {
         targetElement.dispatchEvent(new Event('mouseenter'))
     }
-
-    tooltips[uuid] = tooltip
 }
 
 function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig?: TooltipConfig, position?: TooltipPosition) {
@@ -191,8 +191,8 @@ function initTooltip(targetElement: HTMLElement, tooltipConfig: ReturnType<typeo
     const mouseEnterEventController = new AbortController()
     const mouseLeaveEventController = new AbortController()
 
-    anchorElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement), { signal: mouseEnterEventController.signal})
-    anchorElement.addEventListener('mouseleave', onMouseLeave, { signal: mouseLeaveEventController.signal})
+    anchorElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement, uuid), { signal: mouseEnterEventController.signal})
+    anchorElement.addEventListener('mouseleave', () => onMouseLeave(uuid), { signal: mouseLeaveEventController.signal})
 
     return {
         anchorElement,
@@ -220,9 +220,10 @@ function createTooltipElement(tooltipClasses: string, tooltipBorderWidth: number
 }
 
 function onMouseEnter(
-    anchorElement: HTMLElement, 
+        anchorElement: HTMLElement, 
         tooltipConfig: ReturnType<typeof getTooltipConfig>, 
-        tooltipElement: HTMLDivElement
+        tooltipElement: HTMLDivElement,
+        uuid: string
     ) {
     if (!tooltipConfig.shouldShow) return 
 
@@ -257,13 +258,13 @@ function onMouseEnter(
         tooltipElement.style.opacity = '1'
         tooltipElement.style.zIndex = tooltipConfig.zIndex.toString()
 
-        handleHideOnScroll(anchorElement, () => hideTooltip())
-        handleHideOnResize(anchorElement, () => hideTooltip())
+        handleHideOnScroll(anchorElement, () => hideTooltip(uuid))
+        handleHideOnResize(anchorElement, () => hideTooltip(uuid))
     }
 }
 
-function onMouseLeave() {
-    hideTooltip()
+function onMouseLeave(uuid: string) {
+    hideTooltip(uuid)
 }
 
 function tryMountTooltipOnLeft(anchorElementRect: DOMRect, tooltipConfig: ReturnType<typeof getTooltipConfig>, tooltipElement: HTMLDivElement) {
@@ -499,34 +500,34 @@ function getArrowPositionMinLimit(currentTooltipPosition: TooltipPosition, toolt
     }
 }
 
-function hideTooltip() {
-    const tooltipElement = document.querySelector(`.${tooltipElementClass}`)
+function hideTooltip(uuid: string) {
+    const shownTooltipElement = document.querySelector(`.${tooltipElementClass}`)
+    const currentTooltipElement = tooltips[uuid]?.tooltipElement
 
-    if (tooltipElement && tooltipElement instanceof HTMLElement) {
+    if (currentTooltipElement && shownTooltipElement && shownTooltipElement instanceof HTMLElement && shownTooltipElement === currentTooltipElement) {
         resetResizeReferences()
 
         // Remove Arrow element from Tooltip, because it needs to be rebuilt every time Tooltip is showed again
-        tooltipElement.querySelector(`.${arrowElementClass}`)?.remove()
+        shownTooltipElement.querySelector(`.${arrowElementClass}`)?.remove()
     
         // Reset position so that old position does not effect new position (when zooming old position could be off screen)
-        tooltipElement.style.left = '0'
-        tooltipElement.style.top = '0'
+        shownTooltipElement.style.left = '0'
+        shownTooltipElement.style.top = '0'
     
-        tooltipElement.remove()
+        shownTooltipElement.remove()
     }
 }
 
 function destroyTooltip(tooltip: ReturnType<typeof initTooltip>) {
-    hideTooltip()
-
-    tooltip.mouseEnterEventController.abort()
-    tooltip.mouseLeaveEventController.abort()
-
     const uuid = tooltip.tooltipElement.dataset.uuid
 
     if (uuid) {
+        hideTooltip(uuid)
         delete tooltips[uuid]
     }
+
+    tooltip.mouseEnterEventController.abort()
+    tooltip.mouseLeaveEventController.abort()
 }
 
 export default ZeroTooltip

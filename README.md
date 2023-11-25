@@ -87,7 +87,7 @@ Tooltip can be customizable also for each usage (locally) using same config as f
 <script setup lang="ts">
 import ZeroTooltipLocalConfig from 'zero-tooltip'
 
-const tooltipConfig: ZeroTooltipLocalConfig = {
+const tooltipConfig: ZeroTooltipLocalConfig = reactive({
     content: 'This is tooltip'
     defaultPosition: ... ,
     positions: ... ,
@@ -103,7 +103,7 @@ const tooltipConfig: ZeroTooltipLocalConfig = {
     arrowMinOffsetFromTooltipCorner: ... ,
     zIndex: ... ,
     show: ...
-}
+})
 </script>
 ```
 
