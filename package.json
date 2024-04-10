@@ -10,21 +10,19 @@
       "require": "./dist/zero-tooltip.umd.cjs",
       "types": "./dist/index.d.ts"
     },
-    "./dist/styles.css": {
-      "import": "./dist/styles.css",
-      "require": "./dist/styles.css"
-    }
+    "./dist/style.css": "./dist/style.css",
+    "./style.css": "./dist/style.css"
   },
   "./package.json": "./package.json",
   "files": [
     "dist",
     "src"
   ],
-  "version": "1.0.8",
+  "version": "1.0.9",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc && vite build && npx tailwindcss -o ./dist/styles.css --minify",
+    "build": "npx tailwindcss -o ./src/style.css --minify && vite build && vue-tsc -d --emitDeclarationOnly",
     "preview": "vite preview"
   },
   "peerDependencies": {

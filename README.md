@@ -10,23 +10,26 @@ The component is designed to enhance user interactions by providing informative 
 ```bash
 # npm
 npm install zero-tooltip
+
 # yarn
 yarn add zero-tooltip
+
+# pnpm
+pnpm install zero-tooltip
 ```
 
-Add globally in `main.ts`:
+Register plugin in `main.ts`:
 ```ts
 import ZeroTooltip from 'zero-tooltip'
-// import default styles
-import '../node_modules/zero-tooltip/dist/styles.css'
-// register directive
+
 const app = createApp(App)
-app.directive('tooltip', ZeroTooltip())
+
+app.use(ZeroTooltip())
 ```
 
 ## Usage
 
-Use it just like any other Vue.js directive on elements.
+Tooltip can be used with directive `v-tooltip` added on elements.
 The given value is displayed as tooltip's text:
 
 ```html
@@ -43,17 +46,17 @@ Default position for tooltip is above/on top of the element that is being hovere
 <button v-tooltip:right="'Submits this form'">Submit</button>
 ```
 
-Acceptable arguments are: `left` | `top` | `right` | `bottom`. Passing this argument locally, it overrides default tooltip position given as `defaultPosition` when registering directive at the app level.
+Acceptable arguments are: `left` | `top` | `right` | `bottom`. This will override tooltip default position that was set during plugin registering process.
 
-You can also define default position globally when registering directive at the app level:
+You can also define default position globally when registering plugin:
 
 ```ts
-app.directive('tooltip', ZeroTooltip({
+app.use(ZeroTooltip({
     defaultPosition: 'right'
 }))
 ```
 
-Tooltip component is fully customizable by giving config object when declaring global tooltip directive:
+Tooltip component is fully customizable by giving config object as options when registering tooltip plugin:
 ```ts
 import ZeroTooltipConfig from 'zero-tooltip'
 
@@ -73,7 +76,7 @@ const tooltipConfig: ZeroTooltipConfig = {
     zIndex: ...
 }
 
-app.directive('tooltip', ZeroTooltip(tooltipConfig))
+app.use(ZeroTooltip(tooltipConfig))
 ```
 
 All above settings are optional.
@@ -88,7 +91,7 @@ Tooltip can be customizable also for each usage (locally) using same config as f
 import ZeroTooltipLocalConfig from 'zero-tooltip'
 
 const tooltipConfig: ZeroTooltipLocalConfig = reactive({
-    content: 'This is tooltip'
+    content: 'This is tooltip',
     defaultPosition: ... ,
     positions: ... ,
     offsetFromSource: ... ,
