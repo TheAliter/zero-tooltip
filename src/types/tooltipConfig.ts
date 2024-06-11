@@ -2,6 +2,7 @@ import TooltipPosition from "./tooltipPosition"
 import TooltipPositions from "./tooltipPositions"
 
 type TooltipConfig = {
+    appendTo?: string,
     defaultPosition?: TooltipPosition,
     positions?: Partial<TooltipPositions>,
     offsetFromSource?: number,

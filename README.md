@@ -61,6 +61,7 @@ Tooltip component is fully customizable by giving config object as options when 
 import ZeroTooltipConfig from 'zero-tooltip'
 
 const tooltipConfig: ZeroTooltipConfig = {
+    appendTo: ... ,
     defaultPosition: ... ,
     positions: ... ,
     offsetFromSource: ... ,
@@ -92,6 +93,7 @@ import ZeroTooltipLocalConfig from 'zero-tooltip'
 
 const tooltipConfig: ZeroTooltipLocalConfig = reactive({
     content: 'This is tooltip',
+    appendTo: ... ,
     defaultPosition: ... ,
     positions: ... ,
     offsetFromSource: ... ,
@@ -113,7 +115,8 @@ const tooltipConfig: ZeroTooltipLocalConfig = reactive({
 ## ZeroTooltipConfig
 | Property | <div style="width:260px">Default value</div> | Type | Details |
 |---|---|---|---|
-| defaultPosition | *top* | TooltipPosition | Position of tooltip component relative to element that is being hovered |
+| appendTo | *body* | string | A valid CSS query selector to specify where Tooltip gets appended. |
+| defaultPosition | *top* | TooltipPosition | Position of tooltip component relative to element that is being hovered. |
 | positions | *{ <br> &emsp; left: ['left', 'right', 'top', 'bottom'], <br> &emsp; top: ['top', 'bottom', 'right', 'left'], <br> &emsp; right: ['right', 'left', 'top', 'bottom'], <br> &emsp; bottom: ['bottom', 'top', 'right', 'left'], <br> }* | TooltipPositions | Ordered list of fallback positions in case tooltip does not have enough space in default position. If none of given positions will have enough space for tooltip, then it will not be rendered. |
 | offsetFromSource | *10* | number | Tooltip offset in `px` from element that's being hovered *(arrow size is not added to this value)* |
 | offsetFromViewport | *20* | number | Minimal allowed tooltip offset in `px` from viewport sides |

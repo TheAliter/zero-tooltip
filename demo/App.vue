@@ -4,8 +4,20 @@
 
     <div typeof="button" @click="counter" style="cursor: pointer;">independetn</div>
 
+
+    <div class="zt-fixed zt-right-0 zt-top-0 zt-w-[400px] zt-h-[500px] zt-bg-red-400 zt-z-[2]" id="mountain">
+        <button
+            v-if="shouldShow"
+            v-tooltip="tooltipConfig" 
+            @click="action"
+            :style="`position: absolute; top: 300px; left: 100px; color: white; background: green; padding: 4px 6px; width: 150px;`">
+            config
+        </button>
+    </div>
+
+
     <a
-    v-tooltip:bottom="`count is ${count}`" 
+    v-tooltip="`count is ${count}`" 
     :style="`position: absolute; top: 200px; left: 100px; color: white; background: green; padding: 4px 6px; width: ${awidth}px;`"
     
     @click="counter">
@@ -28,13 +40,6 @@
 
     <button @click="updateEntries">update entries</button> 
 
-     <button
-    v-if="shouldShow"
-    v-tooltip="tooltipConfig" 
-    @click="action"
-    :style="`position: absolute; top: 300px; left: 100px; color: white; background: green; padding: 4px 6px; width: 150px;`">
-    config
-  </button>
     
   </div>
 </template>
@@ -52,7 +57,9 @@
   let data = ref([{count: 1}, { count: 5}])
 
   const tooltipConfig: TooltipLocalConfig = reactive({ 
+    appendTo: '#mountain',
     content: 'Tooltip testers form',
+    defaultPosition: 'right',
     show: true
   })
 

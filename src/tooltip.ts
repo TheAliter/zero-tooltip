@@ -23,6 +23,7 @@ const defaultTooltipPositions: TooltipPositions = {
     bottom: ['bottom', 'top', 'right', 'left'],
 }
 
+const defaultAppendTo: string = 'body'
 const defaultTooltipPosition: TooltipPosition = 'top'
 const defaultTooltipOffsetFromSource = 10
 const defaultTooltipOffsetFromViewport = 20
@@ -91,6 +92,7 @@ function buildTooltip(bindingValue: any, globalConfig: TooltipConfig | undefined
 
 function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig?: TooltipConfig, position?: TooltipPosition) {
     // Tooltip config
+    let appendTo: string | undefined
     let tooltipText: string | undefined
     let tooltipPosition: TooltipPosition | undefined
     let tooltipPositions: TooltipPositions | undefined
@@ -109,7 +111,9 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
 
     tooltipText = getTooltipText(localConfig)
 
+    // Check if local config is defined
     if (typeof(localConfig) !== 'string') {
+        appendTo = localConfig.appendTo ?? globalConfig?.appendTo ?? defaultAppendTo;
         tooltipPosition = position ?? localConfig.defaultPosition ?? globalConfig?.defaultPosition ?? defaultTooltipPosition;
         tooltipPositions =  {
             left: localConfig.positions?.left ?? globalConfig?.positions?.left ?? defaultTooltipPositions.left,
@@ -131,6 +135,8 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
         shouldShow = localConfig.show ?? defaultShouldShow
     }
 
+    // If values were not not defined by localConfig, assign either globalConfig or default value
+    if (appendTo === undefined) appendTo = globalConfig?.appendTo ?? defaultAppendTo;
     if (tooltipPosition === undefined) tooltipPosition = position ?? globalConfig?.defaultPosition ?? defaultTooltipPosition;
     if (tooltipPositions === undefined) tooltipPositions =  {
         left: globalConfig?.positions?.left ?? defaultTooltipPositions.left,
@@ -152,6 +158,7 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
     if (shouldShow === undefined) shouldShow = defaultShouldShow
 
     return {
+        appendTo,
         tooltipText,
         tooltipPosition,
         tooltipPositions,
@@ -229,9 +236,9 @@ function onMouseEnter(
 
     const anchorElementRect = anchorElement.getBoundingClientRect()
 
-    // Mount Tooltip element to body
-    const body = document.querySelector('body')
-    body?.appendChild(tooltipElement)
+    // Mount Tooltip element to target element (default is `body`)
+    const appendToTarget = document.querySelector(tooltipConfig.appendTo)
+    appendToTarget?.appendChild(tooltipElement)
 
     // Find suitable Tooltip position
     let hasNeededDisplaySpace = false
