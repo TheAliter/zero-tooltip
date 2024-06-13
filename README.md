@@ -18,13 +18,14 @@ yarn add zero-tooltip
 pnpm install zero-tooltip
 ```
 
-Register plugin in `main.ts`:
+Register plugin and import styles in `main.ts`:
 ```ts
 import ZeroTooltip from 'zero-tooltip'
+import 'zero-tooltip/style.css'
 
 const app = createApp(App)
 
-app.use(ZeroTooltip())
+app.use(ZeroTooltip)
 ```
 
 ## Usage
@@ -51,9 +52,9 @@ Acceptable arguments are: `left` | `top` | `right` | `bottom`. This will overrid
 You can also define default position globally when registering plugin:
 
 ```ts
-app.use(ZeroTooltip({
+app.use(ZeroTooltip, {
     defaultPosition: 'right'
-}))
+})
 ```
 
 Tooltip component is fully customizable by giving config object as options when registering tooltip plugin:
@@ -77,7 +78,7 @@ const tooltipConfig: ZeroTooltipConfig = {
     zIndex: ...
 }
 
-app.use(ZeroTooltip(tooltipConfig))
+app.use(ZeroTooltip, tooltipConfig)
 ```
 
 All above settings are optional.
