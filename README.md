@@ -129,7 +129,7 @@ const tooltipConfig: ZeroTooltipLocalConfig = reactive({
 | arrowSize | *5* | number | Length of arrow hypotenuse in `px` (arrow is generated using border width property, creating square which gets divided in four triangles, thus `arrowSize` is length of square side) |
 | arrowClasses | *undefined* | string | List of classes that will be added to arrow element |
 | arrowMinOffsetFromTooltipCorner | *6* | number | Minimal allowed arrow offset in `px` from tooltip corner. Used in situations when tooltip does not have enough space to be centered relative to element that is being hover, thus arrow is rendered closer to one of the tooltip corners |
-| zIndex | *1* | number | `z-index` css property value of tooltip |
+| zIndex | *1* | number &#124; string | `z-index` css property value of tooltip |
 
 ## ZeroTooltipLocalConfig
 Same as [ZeroTooltipConfig](#ZeroTooltipConfig) with following additions:

@@ -92,70 +92,51 @@ function buildTooltip(bindingValue: any, globalConfig: TooltipConfig | undefined
 
 function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig?: TooltipConfig, position?: TooltipPosition) {
     // Tooltip config
-    let appendTo: string | undefined
-    let tooltipText: string | undefined
-    let tooltipPosition: TooltipPosition | undefined
-    let tooltipPositions: TooltipPositions | undefined
-    let tooltipOffsetFromSource: number | undefined
-    let tooltipOffsetFromViewport: number | undefined
-    let tooltipMinWidth: number | undefined
-    let tooltipMaxWidth: number | undefined
-    let tooltipBorderWidth: number | undefined
-    let tooltipClasses: string | undefined
-    let textClasses: string | undefined
-    let arrowSize: number | undefined
-    let arrowClasses: string | undefined
-    let arrowMinOffsetFromTooltipCorner: number | undefined
-    let zIndex: number | undefined
-    let shouldShow: boolean | undefined
-
-    tooltipText = getTooltipText(localConfig)
-
-    // Check if local config is defined
-    if (typeof(localConfig) !== 'string') {
-        appendTo = localConfig.appendTo ?? globalConfig?.appendTo ?? defaultAppendTo;
-        tooltipPosition = position ?? localConfig.defaultPosition ?? globalConfig?.defaultPosition ?? defaultTooltipPosition;
-        tooltipPositions =  {
-            left: localConfig.positions?.left ?? globalConfig?.positions?.left ?? defaultTooltipPositions.left,
-            top: localConfig.positions?.top ?? globalConfig?.positions?.top ?? defaultTooltipPositions.top,
-            right: localConfig.positions?.right ?? globalConfig?.positions?.right ?? defaultTooltipPositions.right,
-            bottom: localConfig.positions?.bottom ?? globalConfig?.positions?.bottom ?? defaultTooltipPositions.bottom,
-        }
-        tooltipOffsetFromSource = localConfig.offsetFromSource ?? globalConfig?.offsetFromSource ?? defaultTooltipOffsetFromSource
-        tooltipOffsetFromViewport = localConfig.offsetFromViewport ?? globalConfig?.offsetFromViewport ?? defaultTooltipOffsetFromViewport
-        tooltipMinWidth = localConfig.minWidth ?? globalConfig?.minWidth ?? defaultTooltipMinWidth
-        tooltipMaxWidth = localConfig.maxWidth ?? globalConfig?.maxWidth ?? defaultTooltipMaxWidth
-        tooltipBorderWidth = localConfig.tooltipBorderWidth ?? globalConfig?.tooltipBorderWidth ?? defaultTooltipBorderWidth
-        tooltipClasses = tooltipElementClass + ' ' + defaultTooltipClasses + ' ' + (localConfig.tooltipClasses ?? globalConfig?.tooltipClasses ?? '')
-        textClasses = textElementClass + ' ' + defaultTextClasses + ' ' + (localConfig.textClasses ?? globalConfig?.textClasses ?? '')
-        arrowSize = localConfig.arrowSize ?? globalConfig?.arrowSize ?? defaultArrowSize
-        arrowClasses = localConfig.arrowClasses ?? globalConfig?.arrowClasses ?? ''
-        arrowMinOffsetFromTooltipCorner = localConfig.arrowMinOffsetFromTooltipCorner ?? globalConfig?.arrowMinOffsetFromTooltipCorner ?? defaultMinArrowOffsetFromTooltipCorner
-        zIndex = localConfig.zIndex ?? globalConfig?.zIndex ?? defaultZIndex
-        shouldShow = localConfig.show ?? defaultShouldShow
-    }
-
-    // If values were not not defined by localConfig, assign either globalConfig or default value
-    if (appendTo === undefined) appendTo = globalConfig?.appendTo ?? defaultAppendTo;
-    if (tooltipPosition === undefined) tooltipPosition = position ?? globalConfig?.defaultPosition ?? defaultTooltipPosition;
-    if (tooltipPositions === undefined) tooltipPositions =  {
+    let appendTo = globalConfig?.appendTo ?? defaultAppendTo
+    let tooltipText = getTooltipText(localConfig)
+    let tooltipPosition = position ?? globalConfig?.defaultPosition ?? defaultTooltipPosition
+    let tooltipPositions: TooltipPositions = {
         left: globalConfig?.positions?.left ?? defaultTooltipPositions.left,
         top: globalConfig?.positions?.top ?? defaultTooltipPositions.top,
         right: globalConfig?.positions?.right ?? defaultTooltipPositions.right,
         bottom: globalConfig?.positions?.bottom ?? defaultTooltipPositions.bottom,
     }
-    if (tooltipOffsetFromSource === undefined) tooltipOffsetFromSource = globalConfig?.offsetFromSource ?? defaultTooltipOffsetFromSource
-    if (tooltipOffsetFromViewport === undefined) tooltipOffsetFromViewport = globalConfig?.offsetFromViewport ?? defaultTooltipOffsetFromViewport
-    if (tooltipMinWidth === undefined) tooltipMinWidth = globalConfig?.minWidth ?? defaultTooltipMinWidth
-    if (tooltipMaxWidth === undefined) tooltipMaxWidth = globalConfig?.maxWidth ?? defaultTooltipMaxWidth
-    if (tooltipBorderWidth === undefined) tooltipBorderWidth = globalConfig?.tooltipBorderWidth ?? defaultTooltipBorderWidth
-    if (tooltipClasses === undefined) tooltipClasses = tooltipElementClass + ' ' + defaultTooltipClasses + ' ' + (globalConfig?.tooltipClasses ?? '')
-    if (textClasses === undefined) textClasses = textElementClass + ' ' + defaultTextClasses + ' ' + (globalConfig?.textClasses ?? '')
-    if (arrowSize === undefined) arrowSize = globalConfig?.arrowSize ?? defaultArrowSize
-    if (arrowClasses === undefined) arrowClasses = globalConfig?.arrowClasses ?? ''
-    if (arrowMinOffsetFromTooltipCorner === undefined) arrowMinOffsetFromTooltipCorner = globalConfig?.arrowMinOffsetFromTooltipCorner ?? defaultMinArrowOffsetFromTooltipCorner
-    if (zIndex === undefined) zIndex = globalConfig?.zIndex ?? defaultZIndex
-    if (shouldShow === undefined) shouldShow = defaultShouldShow
+    let tooltipOffsetFromSource = globalConfig?.offsetFromSource ?? defaultTooltipOffsetFromSource
+    let tooltipOffsetFromViewport = globalConfig?.offsetFromViewport ?? defaultTooltipOffsetFromViewport
+    let tooltipMinWidth = globalConfig?.minWidth ?? defaultTooltipMinWidth
+    let tooltipMaxWidth = globalConfig?.maxWidth ?? defaultTooltipMaxWidth
+    let tooltipBorderWidth = globalConfig?.tooltipBorderWidth ?? defaultTooltipBorderWidth
+    let tooltipClasses = tooltipElementClass + ' ' + defaultTooltipClasses + ' ' + (globalConfig?.tooltipClasses ?? '')
+    let textClasses = textElementClass + ' ' + defaultTextClasses + ' ' + (globalConfig?.textClasses ?? '')
+    let arrowSize = globalConfig?.arrowSize ?? defaultArrowSize
+    let arrowClasses = globalConfig?.arrowClasses ?? ''
+    let arrowMinOffsetFromTooltipCorner = globalConfig?.arrowMinOffsetFromTooltipCorner ?? defaultMinArrowOffsetFromTooltipCorner
+    let zIndex = globalConfig?.zIndex ?? defaultZIndex
+    let shouldShow = defaultShouldShow
+
+    // Check if local config is defined (it's defined when local config is Object and not a string, because string means that just Tooltip text is given)
+    if (typeof(localConfig) !== 'string') {
+        if (localConfig.appendTo !== undefined) appendTo = localConfig.appendTo
+        if (position === undefined && localConfig.defaultPosition !== undefined) tooltipPosition = localConfig.defaultPosition
+
+        if (localConfig.positions?.left !== undefined) tooltipPositions.left = localConfig.positions.left
+        if (localConfig.positions?.top !== undefined) tooltipPositions.top = localConfig.positions.top
+        if (localConfig.positions?.right !== undefined) tooltipPositions.right = localConfig.positions.right
+        if (localConfig.positions?.bottom !== undefined) tooltipPositions.bottom = localConfig.positions.bottom
+
+        if (localConfig.offsetFromSource !== undefined) tooltipOffsetFromSource = localConfig.offsetFromSource
+        if (localConfig.offsetFromViewport !== undefined) tooltipOffsetFromViewport = localConfig.offsetFromViewport
+        if (localConfig.minWidth !== undefined) tooltipMinWidth = localConfig.minWidth
+        if (localConfig.maxWidth !== undefined) tooltipMaxWidth = localConfig.maxWidth
+        if (localConfig.tooltipBorderWidth !== undefined) tooltipBorderWidth = localConfig.tooltipBorderWidth
+        if (localConfig.tooltipClasses !== undefined) tooltipClasses = tooltipElementClass + ' ' + defaultTooltipClasses + ' ' + localConfig.tooltipClasses
+        if (localConfig.textClasses !== undefined) textClasses = textElementClass + ' ' + defaultTextClasses + ' ' + localConfig.textClasses
+        if (localConfig.arrowSize !== undefined) arrowSize = localConfig.arrowSize
+        if (localConfig.arrowClasses !== undefined) arrowClasses = localConfig.arrowClasses
+        if (localConfig.arrowMinOffsetFromTooltipCorner !== undefined) arrowMinOffsetFromTooltipCorner = localConfig.arrowMinOffsetFromTooltipCorner
+        if (localConfig.zIndex !== undefined) zIndex = localConfig.zIndex
+        if (localConfig.show !== undefined) shouldShow = localConfig.show
+    }
 
     return {
         appendTo,
@@ -263,7 +244,7 @@ function onMouseEnter(
         drawArrow(anchorElementRect, currentTooltipPosition, tooltipConfig, tooltipElement)
 
         tooltipElement.style.opacity = '1'
-        tooltipElement.style.zIndex = tooltipConfig.zIndex.toString()
+        tooltipElement.style.zIndex = typeof(tooltipConfig.zIndex) === 'string' ? tooltipConfig.zIndex : tooltipConfig.zIndex.toString();
 
         handleHideOnScroll(anchorElement, () => hideTooltip(uuid))
         handleHideOnResize(anchorElement, () => hideTooltip(uuid))
