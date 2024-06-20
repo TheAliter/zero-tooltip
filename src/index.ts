@@ -1,5 +1,5 @@
 import './style.css'
-import { App } from 'vue'
+import { App, FunctionDirective } from 'vue'
 
 import ZeroTooltip from "./tooltip"
 import TooltipConfig from "./types/tooltipConfig"
@@ -18,4 +18,10 @@ export type {
     TooltipPosition as ZeroTooltipPosition, 
     TooltipPositions as ZeroTooltipPositions, 
     TooltipLocalConfig as ZeroTooltipLocalConfig 
+}
+
+declare module 'vue' {
+    interface ComponentCustomProperties {
+        vTooltip: FunctionDirective<HTMLElement, TooltipLocalConfig | string>
+    }
 }

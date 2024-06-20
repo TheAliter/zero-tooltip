@@ -1,13 +1,13 @@
 import './style.css'
 import { createApp } from 'vue'
-import App from './App.vue'
-import ZeroTooltip from '../src/tooltip'
+import MyApp from './App.vue'
+import ZeroTooltip from '../src/index'
 
-const app = createApp(App)
+const app = createApp(MyApp)
 
-app.directive('tooltip', ZeroTooltip({
+app.use(ZeroTooltip, {
     defaultPosition: 'right'
-}))
+})
 
 app.mount('#app')
 
