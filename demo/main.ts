@@ -1,4 +1,4 @@
-import './style.css'
+import '../src/style.css'
 import { createApp } from 'vue'
 import MyApp from './App.vue'
 import ZeroTooltip from '../src/index'
