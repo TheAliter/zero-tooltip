@@ -1,10 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   prefix: 'zt-',
+  corePlugins: {
+    preflight: false,
+  },
   content: [
     "./index.html",
     "./src/**/*.{js,ts,vue}",
-    "./demo/**/*.{js,ts,vue}",
   ],
   theme: {
     extend: {},

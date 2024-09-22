@@ -22,7 +22,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npx tailwindcss -o ./src/style.css --minify && vite build && vue-tsc -d --emitDeclarationOnly",
+    "build": "npx tailwindcss -o ./src/style.css && vite build && vue-tsc -d --emitDeclarationOnly",
     "preview": "vite preview"
   },
   "devDependencies": {
