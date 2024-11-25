@@ -184,7 +184,10 @@ function initTooltip(targetElement: HTMLElement, tooltipConfig: ReturnType<typeo
     tooltipElement.append(tooltipTextElement)
     tooltipElement.dataset.uuid = uuid
 
-    const isHoveringOverAnchorElement = false
+    const mouseEventState = {
+        currentInstanceId: Date.now(),
+        isHoveringOverAnchorElement: false,
+    }
     const mouseEnterEventController = new AbortController()
     const mouseLeaveEventController = new AbortController()
 
@@ -197,7 +200,7 @@ function initTooltip(targetElement: HTMLElement, tooltipConfig: ReturnType<typeo
         tooltipElement,
         mouseEnterEventController,
         mouseLeaveEventController,
-        isHoveringOverAnchorElement,
+        mouseEventState,
     }
 }
 
@@ -225,12 +228,14 @@ async function onMouseEnter(
     ) {
     if (!tooltipConfig.shouldShow) return 
 
-    tooltips[uuid].isHoveringOverAnchorElement = true
+    const currentInstanceId = Date.now()
+    tooltips[uuid].mouseEventState.currentInstanceId = currentInstanceId
+    tooltips[uuid].mouseEventState.isHoveringOverAnchorElement = true
 
     if (tooltipConfig.showDelay > 0) {
         await new Promise(resolve => setTimeout(resolve, tooltipConfig.showDelay))
 
-        if (!tooltips[uuid].isHoveringOverAnchorElement) return
+        if (!tooltips[uuid].mouseEventState.isHoveringOverAnchorElement || tooltips[uuid].mouseEventState.currentInstanceId !== currentInstanceId) return
     }
 
     const anchorElementRect = anchorElement.getBoundingClientRect()
@@ -270,12 +275,14 @@ async function onMouseEnter(
 }
 
 async function onMouseLeave(tooltipConfig: ReturnType<typeof getTooltipConfig>, uuid: string) {
-    tooltips[uuid].isHoveringOverAnchorElement = false
+    const currentInstanceId = Date.now()
+    tooltips[uuid].mouseEventState.currentInstanceId = currentInstanceId
+    tooltips[uuid].mouseEventState.isHoveringOverAnchorElement = false
     
     if (tooltipConfig.hideDelay > 0) {
         await new Promise(resolve => setTimeout(resolve, tooltipConfig.hideDelay))
 
-        if (tooltips[uuid].isHoveringOverAnchorElement) return
+        if (tooltips[uuid].mouseEventState.isHoveringOverAnchorElement || tooltips[uuid].mouseEventState.currentInstanceId !== currentInstanceId) return
     }
 
     hideTooltip(uuid)
