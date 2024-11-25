@@ -75,7 +75,9 @@ const tooltipConfig: ZeroTooltipConfig = {
     arrowSize: ... ,
     arrowClasses: ... ,
     arrowMinOffsetFromTooltipCorner: ... ,
-    zIndex: ...
+    zIndex: ... ,
+    showDelay: ... ,
+    hideDelay: ... ,
 }
 
 app.use(ZeroTooltip, tooltipConfig)
@@ -108,7 +110,9 @@ const tooltipConfig: ZeroTooltipLocalConfig = reactive({
     arrowClasses: ... ,
     arrowMinOffsetFromTooltipCorner: ... ,
     zIndex: ... ,
-    show: ...
+    show: ... ,
+    showDelay: ... ,
+    hideDelay: ... ,
 })
 </script>
 ```
@@ -130,6 +134,8 @@ const tooltipConfig: ZeroTooltipLocalConfig = reactive({
 | arrowClasses | *undefined* | string | List of classes that will be added to arrow element |
 | arrowMinOffsetFromTooltipCorner | *6* | number | Minimal allowed arrow offset in `px` from tooltip corner. Used in situations when tooltip does not have enough space to be centered relative to element that is being hover, thus arrow is rendered closer to one of the tooltip corners |
 | zIndex | *1* | number &#124; string | `z-index` css property value of tooltip |
+| showDelay | *0* | number | Delay in milliseconds after which to show tooltip while hovering over element |
+| hideDelay | *0* | number | Delay in milliseconds after which to hide tooltip when leaving element boundaries |
 
 ## ZeroTooltipLocalConfig
 Same as [ZeroTooltipConfig](#ZeroTooltipConfig) with following additions:

@@ -37,6 +37,8 @@ const defaultArrowClasses = 'zt-absolute zt-border-solid zt-border-[#495057]'
 const defaultMinArrowOffsetFromTooltipCorner = 6
 const defaultZIndex = 1
 const defaultShouldShow = true
+const defaultShowDelay = 0
+const defaultHideDelay = 0
 
 const tooltips: {[key: string]: ReturnType<typeof initTooltip>} = {}
 
@@ -113,6 +115,8 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
     let arrowMinOffsetFromTooltipCorner = globalConfig?.arrowMinOffsetFromTooltipCorner ?? defaultMinArrowOffsetFromTooltipCorner
     let zIndex = globalConfig?.zIndex ?? defaultZIndex
     let shouldShow = defaultShouldShow
+    let showDelay = globalConfig?.showDelay ?? defaultShowDelay
+    let hideDelay = globalConfig?.hideDelay ?? defaultHideDelay
 
     // Check if local config is defined (it's defined when local config is Object and not a string, because string means that just Tooltip text is given)
     if (typeof(localConfig) !== 'string') {
@@ -136,6 +140,8 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
         if (localConfig.arrowMinOffsetFromTooltipCorner !== undefined) arrowMinOffsetFromTooltipCorner = localConfig.arrowMinOffsetFromTooltipCorner
         if (localConfig.zIndex !== undefined) zIndex = localConfig.zIndex
         if (localConfig.show !== undefined) shouldShow = localConfig.show
+        if (localConfig.showDelay !== undefined) showDelay = localConfig.showDelay
+        if (localConfig.hideDelay !== undefined) hideDelay = localConfig.hideDelay
     }
 
     return {
@@ -154,7 +160,9 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
         arrowClasses,
         arrowMinOffsetFromTooltipCorner,
         zIndex,
-        shouldShow
+        shouldShow,
+        showDelay,
+        hideDelay,
     }
 }
 
@@ -176,18 +184,20 @@ function initTooltip(targetElement: HTMLElement, tooltipConfig: ReturnType<typeo
     tooltipElement.append(tooltipTextElement)
     tooltipElement.dataset.uuid = uuid
 
+    const isHoveringOverAnchorElement = false
     const mouseEnterEventController = new AbortController()
     const mouseLeaveEventController = new AbortController()
 
-    anchorElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement, uuid), { signal: mouseEnterEventController.signal})
-    anchorElement.addEventListener('mouseleave', () => onMouseLeave(uuid), { signal: mouseLeaveEventController.signal})
+    anchorElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement, uuid), { signal: mouseEnterEventController.signal })
+    anchorElement.addEventListener('mouseleave', () => onMouseLeave(tooltipConfig, uuid), { signal: mouseLeaveEventController.signal })
 
     return {
         anchorElement,
         tooltipConfig,
         tooltipElement,
         mouseEnterEventController,
-        mouseLeaveEventController
+        mouseLeaveEventController,
+        isHoveringOverAnchorElement,
     }
 }
 
@@ -207,13 +217,21 @@ function createTooltipElement(tooltipClasses: string, tooltipBorderWidth: number
    return tooltipElement
 }
 
-function onMouseEnter(
+async function onMouseEnter(
         anchorElement: HTMLElement, 
         tooltipConfig: ReturnType<typeof getTooltipConfig>, 
         tooltipElement: HTMLDivElement,
         uuid: string
     ) {
     if (!tooltipConfig.shouldShow) return 
+
+    tooltips[uuid].isHoveringOverAnchorElement = true
+
+    if (tooltipConfig.showDelay > 0) {
+        await new Promise(resolve => setTimeout(resolve, tooltipConfig.showDelay))
+
+        if (!tooltips[uuid].isHoveringOverAnchorElement) return
+    }
 
     const anchorElementRect = anchorElement.getBoundingClientRect()
 
@@ -251,7 +269,15 @@ function onMouseEnter(
     }
 }
 
-function onMouseLeave(uuid: string) {
+async function onMouseLeave(tooltipConfig: ReturnType<typeof getTooltipConfig>, uuid: string) {
+    tooltips[uuid].isHoveringOverAnchorElement = false
+    
+    if (tooltipConfig.hideDelay > 0) {
+        await new Promise(resolve => setTimeout(resolve, tooltipConfig.hideDelay))
+
+        if (tooltips[uuid].isHoveringOverAnchorElement) return
+    }
+
     hideTooltip(uuid)
 }
 

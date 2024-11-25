@@ -3,7 +3,12 @@
   <div>
     <h1>Playground</h1>
 
-    <button v-tooltip="'test'" style="position: relative; left: 300px;">Change setting</button>
+    <button 
+        v-tooltip="tooltipConfig" 
+        style="position: relative; padding: 10px;">
+
+        Change setting
+    </button>
   </div>
 </template>
 
@@ -12,10 +17,9 @@
   import TooltipLocalConfig from '../src/types/tooltipLocalConfig'
 
   const tooltipConfig: TooltipLocalConfig = reactive({ 
-    appendTo: '#mountain',
     content: 'Tooltip testers form',
-    defaultPosition: 'right',
-    show: true
+    offsetFromSource: 0,
+    hideDelay: 1000,
   })
 </script>
 

@@ -15,7 +15,9 @@ type TooltipConfig = {
     arrowSize?: number,
     arrowClasses?: string,
     arrowMinOffsetFromTooltipCorner?: number,
-    zIndex?: number | string
+    zIndex?: number | string,
+    showDelay?: number,
+    hideDelay?: number,
 }
 
 export default TooltipConfig
