@@ -187,19 +187,27 @@ function initTooltip(targetElement: HTMLElement, tooltipConfig: ReturnType<typeo
     const mouseEventState = {
         currentInstanceId: Date.now(),
         isHoveringOverAnchorElement: false,
+        lastTooltipMouseLeaveTimestamp: Date.now(),
     }
-    const mouseEnterEventController = new AbortController()
-    const mouseLeaveEventController = new AbortController()
 
-    anchorElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement, uuid), { signal: mouseEnterEventController.signal })
-    anchorElement.addEventListener('mouseleave', () => onMouseLeave(tooltipConfig, uuid), { signal: mouseLeaveEventController.signal })
+    const mouseEnterEventControllers = {
+        anchorElementMouseEnter: new AbortController(),
+        anchorElementMouseLeave: new AbortController(),
+        tooltipElementMouseEnter: new AbortController(),
+        tooltipElementMouseLeave: new AbortController(),
+    }
+
+    anchorElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement, uuid), { signal: mouseEnterEventControllers.anchorElementMouseEnter.signal })
+    anchorElement.addEventListener('mouseleave', () => onMouseLeave(tooltipConfig, uuid), { signal: mouseEnterEventControllers.anchorElementMouseLeave.signal })
+
+    tooltipElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement, uuid, { isTooltip: true }), { signal: mouseEnterEventControllers.tooltipElementMouseEnter.signal })
+    tooltipElement.addEventListener('mouseleave', () => onMouseLeave(tooltipConfig, uuid, { isTooltip: true }), { signal: mouseEnterEventControllers.tooltipElementMouseLeave.signal })
 
     return {
         anchorElement,
         tooltipConfig,
         tooltipElement,
-        mouseEnterEventController,
-        mouseLeaveEventController,
+        mouseEnterEventControllers,
         mouseEventState,
     }
 }
@@ -224,15 +232,24 @@ async function onMouseEnter(
         anchorElement: HTMLElement, 
         tooltipConfig: ReturnType<typeof getTooltipConfig>, 
         tooltipElement: HTMLDivElement,
-        uuid: string
+        uuid: string,
+        options?: { isTooltip?: boolean }
     ) {
     if (!tooltipConfig.shouldShow) return 
+
+    let _showDelay = options?.isTooltip ? 0 : tooltipConfig.showDelay
+
+    // If mouse leaves from Tooltip and enters to Anchor element in short time, show Tooltip immediately
+    const mouseLeaveFromTooltipBufferTime = 100
+    if (!options?.isTooltip && Date.now() - tooltips[uuid].mouseEventState.lastTooltipMouseLeaveTimestamp <= mouseLeaveFromTooltipBufferTime) {
+        _showDelay = 0
+    }
 
     const currentInstanceId = Date.now()
     tooltips[uuid].mouseEventState.currentInstanceId = currentInstanceId
     tooltips[uuid].mouseEventState.isHoveringOverAnchorElement = true
 
-    if (tooltipConfig.showDelay > 0) {
+    if (_showDelay > 0) {
         await new Promise(resolve => setTimeout(resolve, tooltipConfig.showDelay))
 
         if (!tooltips[uuid].mouseEventState.isHoveringOverAnchorElement || tooltips[uuid].mouseEventState.currentInstanceId !== currentInstanceId) return
@@ -274,12 +291,17 @@ async function onMouseEnter(
     }
 }
 
-async function onMouseLeave(tooltipConfig: ReturnType<typeof getTooltipConfig>, uuid: string) {
+async function onMouseLeave(tooltipConfig: ReturnType<typeof getTooltipConfig>, uuid: string, options?: { isTooltip?: boolean }) {
+    if (options?.isTooltip) {
+        tooltips[uuid].mouseEventState.lastTooltipMouseLeaveTimestamp = Date.now()
+    }
+
+    const _hideDelay = options?.isTooltip ? 0 : tooltipConfig.hideDelay
     const currentInstanceId = Date.now()
     tooltips[uuid].mouseEventState.currentInstanceId = currentInstanceId
     tooltips[uuid].mouseEventState.isHoveringOverAnchorElement = false
     
-    if (tooltipConfig.hideDelay > 0) {
+    if (_hideDelay > 0) {
         await new Promise(resolve => setTimeout(resolve, tooltipConfig.hideDelay))
 
         if (tooltips[uuid].mouseEventState.isHoveringOverAnchorElement || tooltips[uuid].mouseEventState.currentInstanceId !== currentInstanceId) return
@@ -547,8 +569,9 @@ function destroyTooltip(tooltip: ReturnType<typeof initTooltip>) {
         delete tooltips[uuid]
     }
 
-    tooltip.mouseEnterEventController.abort()
-    tooltip.mouseLeaveEventController.abort()
+    for (const controller of Object.values(tooltip.mouseEnterEventControllers)) {
+        controller.abort()
+    }
 }
 
 export default ZeroTooltip

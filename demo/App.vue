@@ -18,9 +18,7 @@
 
   const tooltipConfig: TooltipLocalConfig = reactive({ 
     content: 'Tooltip testers form',
-    offsetFromSource: 0,
-    showDelay: 1000,
-    hideDelay: 1000,
+    offsetFromSource: 10,
   })
 </script>
 
