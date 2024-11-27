@@ -187,7 +187,7 @@ function initTooltip(targetElement: HTMLElement, tooltipConfig: ReturnType<typeo
     const mouseEventState = {
         currentInstanceId: Date.now(),
         isHoveringOverAnchorElement: false,
-        lastTooltipMouseLeaveTimestamp: Date.now(),
+        lastTooltipMouseLeaveTimestamp: 0,
     }
 
     const mouseEnterEventControllers = {
