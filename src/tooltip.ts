@@ -250,7 +250,7 @@ async function onMouseEnter(
     tooltips[uuid].mouseEventState.isHoveringOverAnchorElement = true
 
     if (_showDelay > 0) {
-        await new Promise(resolve => setTimeout(resolve, tooltipConfig.showDelay))
+        await new Promise(resolve => setTimeout(resolve, _showDelay))
 
         if (!tooltips[uuid].mouseEventState.isHoveringOverAnchorElement || tooltips[uuid].mouseEventState.currentInstanceId !== currentInstanceId) return
     }
@@ -296,12 +296,11 @@ async function onMouseLeave(tooltipConfig: ReturnType<typeof getTooltipConfig>, 
         tooltips[uuid].mouseEventState.lastTooltipMouseLeaveTimestamp = Date.now()
     }
 
-    const _hideDelay = options?.isTooltip ? 0 : tooltipConfig.hideDelay
     const currentInstanceId = Date.now()
     tooltips[uuid].mouseEventState.currentInstanceId = currentInstanceId
     tooltips[uuid].mouseEventState.isHoveringOverAnchorElement = false
     
-    if (_hideDelay > 0) {
+    if (tooltipConfig.hideDelay > 0) {
         await new Promise(resolve => setTimeout(resolve, tooltipConfig.hideDelay))
 
         if (tooltips[uuid].mouseEventState.isHoveringOverAnchorElement || tooltips[uuid].mouseEventState.currentInstanceId !== currentInstanceId) return
