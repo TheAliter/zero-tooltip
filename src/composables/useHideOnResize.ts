@@ -1,35 +1,37 @@
 export default function useHideOnResize() {
-    let anchorElementResizeObserver: ResizeObserver | null = null
-    let anchorElementRect: DOMRect | null = null
+    const anchorElementResizeObservers: Record<string, ResizeObserver>  = {}
+    const anchorElementRects: Record<string, DOMRect>  = {}
 
-    const handleHideOnResize = (anchorElement: HTMLElement, hideOverlay: () => void) => {
-        anchorElementResizeObserver = new ResizeObserver((entries) => {
+    const handleHideOnResize = (tooltipUuid: string, anchorElement: HTMLElement, hideOverlay: () => void) => {
+        let anchorElementResizeObserver = new ResizeObserver((entries) => {
             const targetElement = entries[0].target
 
-            if (anchorElementRect === null) {
+            if (!anchorElementRects[tooltipUuid]) {
                 // On initial trigger set initial values
-                anchorElementRect = anchorElement.getBoundingClientRect()
+                anchorElementRects[tooltipUuid] = anchorElement.getBoundingClientRect()
             } else {
                 const targetElementRect = targetElement.getBoundingClientRect()
 
                 // Check if anchor element has moved or resized
-                if (targetElementRect.left !== anchorElementRect.left
-                    || targetElementRect.top !== anchorElementRect.top
-                    || targetElementRect.width !== anchorElementRect.width
-                    || targetElementRect.height !== anchorElementRect.height) {
+                if (targetElementRect.left !== anchorElementRects[tooltipUuid].left
+                    || targetElementRect.top !== anchorElementRects[tooltipUuid].top
+                    || targetElementRect.width !== anchorElementRects[tooltipUuid].width
+                    || targetElementRect.height !== anchorElementRects[tooltipUuid].height) {
                         hideOverlay()
                     }
             }
         })
 
+        anchorElementResizeObservers[tooltipUuid] = anchorElementResizeObserver
+
         anchorElementResizeObserver.observe(anchorElement)
     }
 
-    const resetResizeReferences = () => {
-        if (anchorElementResizeObserver !== null) anchorElementResizeObserver.disconnect()
+    const resetResizeReferences = (tooltipUuid: string) => {
+        if (anchorElementResizeObservers[tooltipUuid]) anchorElementResizeObservers[tooltipUuid].disconnect()
 
-        anchorElementResizeObserver = null
-        anchorElementRect = null
+        delete anchorElementResizeObservers[tooltipUuid]
+        delete anchorElementRects[tooltipUuid]
     }
 
     return { handleHideOnResize, resetResizeReferences }

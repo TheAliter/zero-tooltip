@@ -7,7 +7,15 @@
         v-tooltip="tooltipConfig" 
         style="position: relative; padding: 10px;">
 
-        Change setting
+        left block
+    </button>
+
+    <button 
+        v-tooltip="tooltipConfig2" 
+        @click="toggle"
+        style="position: relative; padding: 10px;">
+
+        Right block
     </button>
 
     <br>
@@ -18,6 +26,8 @@
     <OverlayPanel ref="op">
             <button style="padding: 50px; background: greenyellow;" v-tooltip="tooltipConfig">Test button</button>
     </OverlayPanel>
+
+    <div style="height: 1200px; width: 20px; background: red;"></div>
   </div>
 </template>
 
@@ -29,9 +39,16 @@
 
   const tooltipConfig: TooltipLocalConfig = reactive({ 
     content: 'Tooltip testers form',
-    showDelay: 200,
-    hideDelay: 10,
+    showDelay: 0,
+    hideDelay: 1000,
     defaultPosition: 'bottom',
+  })
+
+  const tooltipConfig2: TooltipLocalConfig = reactive({ 
+    content: 'Top tooltip',
+    showDelay: 0,
+    hideDelay: 0,
+    defaultPosition: 'top',
   })
 
   import { ref } from "vue";
@@ -44,7 +61,7 @@
 const op = ref();
 
 const toggle = (event) => {
-    op.value.toggle(event);
+    tooltipConfig2.defaultPosition = 'right';
 }
 </script>
 

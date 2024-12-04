@@ -287,7 +287,7 @@ async function onMouseEnter(
         tooltipElement.style.zIndex = typeof(tooltipConfig.zIndex) === 'string' ? tooltipConfig.zIndex : tooltipConfig.zIndex.toString();
 
         handleHideOnScroll(anchorElement, () => hideTooltip(uuid))
-        handleHideOnResize(anchorElement, () => hideTooltip(uuid))
+        handleHideOnResize(uuid, anchorElement, () => hideTooltip(uuid))
     }
 }
 
@@ -503,7 +503,7 @@ function drawArrow(anchorElementRect: DOMRect, currentTooltipPosition: TooltipPo
     arrowElement.style.borderWidth = `${tooltipConfig.arrowSize}px`
 
     // Mount Arrow element
-    document.querySelector(`.${tooltipElementClass}`)?.appendChild(arrowElement)
+    tooltipElement.appendChild(arrowElement)
 }
 
 function isArrowPositionWithinLimits(currentTooltipPosition: TooltipPosition, tooltipElementRect: DOMRect, arrowPosition: number, tooltipConfig: ReturnType<typeof getTooltipConfig>) {
@@ -543,21 +543,18 @@ function getArrowPositionMinLimit(currentTooltipPosition: TooltipPosition, toolt
 }
 
 function hideTooltip(uuid: string) {
-    const shownTooltipElement = document.querySelector(`.${tooltipElementClass}`)
-    const currentTooltipElement = tooltips[uuid]?.tooltipElement
+    const tooltipElement = tooltips[uuid]?.tooltipElement
 
-    if (currentTooltipElement && shownTooltipElement && shownTooltipElement instanceof HTMLElement && shownTooltipElement === currentTooltipElement) {
-        resetResizeReferences()
+    resetResizeReferences(uuid)
 
-        // Remove Arrow element from Tooltip, because it needs to be rebuilt every time Tooltip is showed again
-        shownTooltipElement.querySelector(`.${arrowElementClass}`)?.remove()
-    
-        // Reset position so that old position does not effect new position (when zooming old position could be off screen)
-        shownTooltipElement.style.left = '0'
-        shownTooltipElement.style.top = '0'
-    
-        shownTooltipElement.remove()
-    }
+    // Remove Arrow element from Tooltip, because it needs to be rebuilt every time Tooltip is showed again
+    tooltipElement.querySelector(`.${arrowElementClass}`)?.remove()
+
+    // Reset position so that old position does not effect new position (when zooming old position could be off screen)
+    tooltipElement.style.left = '0'
+    tooltipElement.style.top = '0'
+
+    tooltipElement.remove()
 }
 
 function destroyTooltip(tooltip: ReturnType<typeof initTooltip>) {
