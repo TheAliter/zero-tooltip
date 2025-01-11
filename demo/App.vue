@@ -41,7 +41,8 @@
 
         <!-- Overlay Panel behavior test -->
         <h2 style="margin-bottom: 0;">Test z-index</h2>
-        <h2 style="margin-top: 0;">Test position for tooltip with target in overlay (which enters with transition)</h2>
+        <h2 style="margin-block: 0;">Test position for tooltip with target in overlay (which enters with transition)</h2>
+        <h2 style="margin-top: 0;">Test always show in overlay</h2>
         <button type="button" @click="toggle">
             Open Overlay panel
         </button>
@@ -55,6 +56,18 @@
                 }">
 
                 Test default tooltip behavior
+            </button>
+
+            <button 
+                v-tooltip="{
+                    content: 'I am always visible',
+                    defaultPosition: 'right',
+                    alwaysOn: true,
+                    zIndex: 1002,
+                }" 
+                style=" margin-left: 20px;">
+
+                Always show
             </button>
         </OverlayPanel>
 
@@ -85,16 +98,33 @@
         </div>
 
         <div style="margin-top: 60px;">
-            <h2>Test always show (UNDER CONSTRUCTION)</h2>
+            <h2 style="margin-bottom: 0">Test always show/on</h2>
+            <h2 style="margin-block: 0;">Test multiple always show/on</h2>
+            <h2 style="margin-top: 0;">Test always show/on with initial scroll offset X and Y</h2>
 
             <button 
                 v-tooltip="{
-                    content: 'I am always visible',
+                    content: 'I am always visible 1',
+                    defaultPosition: 'left',
+                    alwaysOn: true,
                 }" 
                 style="">
 
-                Always show
+                Always show on right
             </button>
+
+            <div style="margin-top: 20px; width: 2000px; overflow: auto; border: 1px solid blue;">
+                <button 
+                    v-tooltip="{
+                        content: 'I am always visible 2',
+                        defaultPosition: 'left',
+                        alwaysOn: true,
+                    }" 
+                    style="margin-left: 400px;">
+    
+                    Always show
+                </button>
+            </div>
         </div>
 
         <div style="margin-top: 60px; border: 1px solid red; height: 500px;">
