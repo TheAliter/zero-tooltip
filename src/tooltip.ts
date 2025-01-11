@@ -39,6 +39,7 @@ const defaultZIndex = 1
 const defaultShouldShow = true
 const defaultShowDelay = 0
 const defaultHideDelay = 0
+const defaultAlwaysOn = false
 
 const tooltips: {[key: string]: ReturnType<typeof initTooltip>} = {}
 
@@ -117,6 +118,7 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
     let shouldShow = defaultShouldShow
     let showDelay = globalConfig?.showDelay ?? defaultShowDelay
     let hideDelay = globalConfig?.hideDelay ?? defaultHideDelay
+    let alwaysOn = defaultAlwaysOn
 
     // Check if local config is defined (it's defined when local config is Object and not a string, because string means that just Tooltip text is given)
     if (typeof(localConfig) !== 'string') {
@@ -142,6 +144,7 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
         if (localConfig.show !== undefined) shouldShow = localConfig.show
         if (localConfig.showDelay !== undefined) showDelay = localConfig.showDelay
         if (localConfig.hideDelay !== undefined) hideDelay = localConfig.hideDelay
+        if (localConfig.alwaysOn !== undefined) alwaysOn = localConfig.alwaysOn
     }
 
     return {
@@ -163,6 +166,7 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
         shouldShow,
         showDelay,
         hideDelay,
+        alwaysOn
     }
 }
 
@@ -179,6 +183,7 @@ function getTooltipText(localConfig: string | TooltipLocalConfig) {
 function initTooltip(targetElement: HTMLElement, tooltipConfig: ReturnType<typeof getTooltipConfig>, uuid: string) {
     let anchorElement = targetElement
 
+    // Create Tooltip element
     let tooltipTextElement = createTextElement(tooltipConfig.textClasses, tooltipConfig.tooltipText)
     let tooltipElement = createTooltipElement(tooltipConfig.tooltipClasses, tooltipConfig.tooltipBorderWidth)
     tooltipElement.append(tooltipTextElement)
