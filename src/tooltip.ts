@@ -185,7 +185,7 @@ function initTooltip(targetElement: HTMLElement, tooltipConfig: ReturnType<typeo
 
     // Create Tooltip element
     let tooltipTextElement = createTextElement(tooltipConfig.textClasses, tooltipConfig.tooltipText)
-    let tooltipElement = createTooltipElement(tooltipConfig.tooltipClasses, tooltipConfig.tooltipBorderWidth)
+    let tooltipElement = createTooltipContainerElement(tooltipConfig.tooltipClasses, tooltipConfig.tooltipBorderWidth)
     tooltipElement.append(tooltipTextElement)
     tooltipElement.dataset.uuid = uuid
 
@@ -202,11 +202,15 @@ function initTooltip(targetElement: HTMLElement, tooltipConfig: ReturnType<typeo
         tooltipElementMouseLeave: new AbortController(),
     }
 
-    anchorElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement, uuid), { signal: mouseEnterEventControllers.anchorElementMouseEnter.signal })
-    anchorElement.addEventListener('mouseleave', () => onMouseLeave(tooltipConfig, uuid), { signal: mouseEnterEventControllers.anchorElementMouseLeave.signal })
+    if (!tooltipConfig.alwaysOn) {
+        anchorElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement, uuid), { signal: mouseEnterEventControllers.anchorElementMouseEnter.signal })
+        anchorElement.addEventListener('mouseleave', () => onMouseLeave(tooltipConfig, uuid), { signal: mouseEnterEventControllers.anchorElementMouseLeave.signal })
 
-    tooltipElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement, uuid, { isTooltip: true }), { signal: mouseEnterEventControllers.tooltipElementMouseEnter.signal })
-    tooltipElement.addEventListener('mouseleave', () => onMouseLeave(tooltipConfig, uuid, { isTooltip: true }), { signal: mouseEnterEventControllers.tooltipElementMouseLeave.signal })
+        tooltipElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement, uuid, { isTooltip: true }), { signal: mouseEnterEventControllers.tooltipElementMouseEnter.signal })
+        tooltipElement.addEventListener('mouseleave', () => onMouseLeave(tooltipConfig, uuid, { isTooltip: true }), { signal: mouseEnterEventControllers.tooltipElementMouseLeave.signal })
+    } else {
+        setTimeout(() => mountTooltipElement(anchorElement, tooltipConfig, tooltipElement, 'absolute'), 0)
+    }
 
     return {
         anchorElement,
@@ -225,7 +229,7 @@ function createTextElement(textClasses: string, tooltipText: string) {
     return tooltipTextElement
 }
 
-function createTooltipElement(tooltipClasses: string, tooltipBorderWidth: number) {
+function createTooltipContainerElement(tooltipClasses: string, tooltipBorderWidth: number) {
    let tooltipElement = document.createElement('div')
    tooltipElement.classList.add(...tooltipClasses.trim().split(' '))
    tooltipElement.style.borderWidth = `${tooltipBorderWidth}px`
@@ -260,6 +264,28 @@ async function onMouseEnter(
         if (!tooltips[uuid].mouseEventState.isHoveringOverAnchorElement || tooltips[uuid].mouseEventState.currentInstanceId !== currentInstanceId) return
     }
 
+    const didMountTooltip = mountTooltipElement(anchorElement, tooltipConfig, tooltipElement)
+
+    if (didMountTooltip) {
+        handleHideOnScroll(anchorElement, () => hideTooltip(uuid))
+        handleHideOnResize(uuid, anchorElement, () => hideTooltip(uuid))
+    }
+}
+
+function mountTooltipElement(
+    anchorElement: HTMLElement, 
+    tooltipConfig: ReturnType<typeof getTooltipConfig>, 
+    tooltipElement: HTMLDivElement,
+    positionStrategy?: 'fixed' | 'absolute'
+) {
+    let scrollOffset = { x: 0, y: 0 }
+
+    if (positionStrategy === 'absolute') {
+        tooltipElement.classList.replace('zt-fixed', 'zt-absolute')
+        scrollOffset.x = window.scrollX
+        scrollOffset.y = window.scrollY
+    }
+
     const anchorElementRect = anchorElement.getBoundingClientRect()
 
     // Mount Tooltip element to target element (default is `body`)
@@ -273,13 +299,13 @@ async function onMouseEnter(
         currentTooltipPosition = tooltipConfig.tooltipPositions[tooltipConfig.tooltipPosition][i]
 
         if (currentTooltipPosition === 'left') {
-            hasNeededDisplaySpace = tryMountTooltipOnLeft(anchorElementRect, tooltipConfig, tooltipElement)
+            hasNeededDisplaySpace = tryMountTooltipOnLeft(anchorElementRect, tooltipConfig, tooltipElement, scrollOffset)
         } else if (currentTooltipPosition === 'top') {
-            hasNeededDisplaySpace = tryMountTooltipOnTop(anchorElementRect, tooltipConfig, tooltipElement)
+            hasNeededDisplaySpace = tryMountTooltipOnTop(anchorElementRect, tooltipConfig, tooltipElement, scrollOffset)
         } else if (currentTooltipPosition === 'right') {
-            hasNeededDisplaySpace = tryMountTooltipOnRight(anchorElementRect, tooltipConfig, tooltipElement)
+            hasNeededDisplaySpace = tryMountTooltipOnRight(anchorElementRect, tooltipConfig, tooltipElement, scrollOffset)
         } else if (currentTooltipPosition === 'bottom') {
-            hasNeededDisplaySpace = tryMountTooltipOnBottom(anchorElementRect, tooltipConfig, tooltipElement)
+            hasNeededDisplaySpace = tryMountTooltipOnBottom(anchorElementRect, tooltipConfig, tooltipElement, scrollOffset)
         }
 
         if (hasNeededDisplaySpace) break
@@ -291,9 +317,10 @@ async function onMouseEnter(
         tooltipElement.style.opacity = '1'
         tooltipElement.style.zIndex = typeof(tooltipConfig.zIndex) === 'string' ? tooltipConfig.zIndex : tooltipConfig.zIndex.toString();
 
-        handleHideOnScroll(anchorElement, () => hideTooltip(uuid))
-        handleHideOnResize(uuid, anchorElement, () => hideTooltip(uuid))
+        return true
     }
+
+    return false
 }
 
 async function onMouseLeave(tooltipConfig: ReturnType<typeof getTooltipConfig>, uuid: string, options?: { isTooltip?: boolean }) {
@@ -312,10 +339,14 @@ async function onMouseLeave(tooltipConfig: ReturnType<typeof getTooltipConfig>, 
     }
 
     hideTooltip(uuid)
-    removeHideOnScrollListeners()
 }
 
-function tryMountTooltipOnLeft(anchorElementRect: DOMRect, tooltipConfig: ReturnType<typeof getTooltipConfig>, tooltipElement: HTMLDivElement) {
+function tryMountTooltipOnLeft(
+    anchorElementRect: DOMRect, 
+    tooltipConfig: ReturnType<typeof getTooltipConfig>, 
+    tooltipElement: HTMLDivElement,
+    scrollOffset: { x: number, y: number },
+) {
     // Check if Tooltip has enough available horizontal space, top and bottom offset from viewport
     const tooltipAvailableMaxWidth = Math.min(anchorElementRect.left - tooltipConfig.tooltipOffsetFromSource - tooltipConfig.tooltipOffsetFromViewport, tooltipConfig.tooltipMaxWidth)
     const isAnchorElementTopLowerThanOffsetFromViewport = anchorElementRect.top >= tooltipConfig.tooltipOffsetFromViewport
@@ -343,13 +374,18 @@ function tryMountTooltipOnLeft(anchorElementRect: DOMRect, tooltipConfig: Return
         || anchorElementRect.top > tooltipTop + tooltipElementRect.height - tooltipConfig.arrowMinOffsetFromTooltipCorner * 2) return false
 
     // Set Tooltip position
-    tooltipElement.style.top = `${tooltipTop}px`
-    tooltipElement.style.left = `${tooltipLeft}px`
+    tooltipElement.style.top = `${tooltipTop + scrollOffset.y}px`
+    tooltipElement.style.left = `${tooltipLeft + scrollOffset.x}px`
 
     return true
 }
 
-function tryMountTooltipOnRight(anchorElementRect: DOMRect, tooltipConfig: ReturnType<typeof getTooltipConfig>, tooltipElement: HTMLDivElement) {
+function tryMountTooltipOnRight(
+    anchorElementRect: DOMRect, 
+    tooltipConfig: ReturnType<typeof getTooltipConfig>, 
+    tooltipElement: HTMLDivElement,
+    scrollOffset: { x: number, y: number },
+) {
     // Check if Tooltip has enough available horizontal space, top and bottom offset from viewport
     const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (anchorElementRect.right + tooltipConfig.tooltipOffsetFromSource) - tooltipConfig.tooltipOffsetFromViewport, tooltipConfig.tooltipMaxWidth)
     const isAnchorElementTopLowerThanOffsetFromViewport = anchorElementRect.top >= tooltipConfig.tooltipOffsetFromViewport
@@ -378,13 +414,18 @@ function tryMountTooltipOnRight(anchorElementRect: DOMRect, tooltipConfig: Retur
         || anchorElementRect.top > tooltipTop + tooltipElementRect.height - tooltipConfig.arrowMinOffsetFromTooltipCorner * 2) return false
 
     // Set Tooltip position
-    tooltipElement.style.top = `${tooltipTop}px`
-    tooltipElement.style.left = `${tooltipLeft}px`
+    tooltipElement.style.top = `${tooltipTop + scrollOffset.y}px`
+    tooltipElement.style.left = `${tooltipLeft + scrollOffset.x}px`
 
     return true
 }
 
-function tryMountTooltipOnTop(anchorElementRect: DOMRect, tooltipConfig: ReturnType<typeof getTooltipConfig>, tooltipElement: HTMLDivElement) {
+function tryMountTooltipOnTop(
+    anchorElementRect: DOMRect, 
+    tooltipConfig: ReturnType<typeof getTooltipConfig>, 
+    tooltipElement: HTMLDivElement,
+    scrollOffset: { x: number, y: number },
+) {
     // Calculate and set Tooltip width
     const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (tooltipConfig.tooltipOffsetFromViewport * 2), tooltipConfig.tooltipMaxWidth)
     tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
@@ -410,13 +451,18 @@ function tryMountTooltipOnTop(anchorElementRect: DOMRect, tooltipConfig: ReturnT
         || anchorElementRect.right < tooltipLeft + tooltipConfig.arrowMinOffsetFromTooltipCorner * 2) return false
 
     // Set Tooltip position
-    tooltipElement.style.top = `${tooltipTop}px`
-    tooltipElement.style.left = `${tooltipLeft}px`
+    tooltipElement.style.top = `${tooltipTop + scrollOffset.y}px`
+    tooltipElement.style.left = `${tooltipLeft + scrollOffset.x}px`
 
     return true
 }
 
-function tryMountTooltipOnBottom(anchorElementRect: DOMRect, tooltipConfig: ReturnType<typeof getTooltipConfig>, tooltipElement: HTMLDivElement) {
+function tryMountTooltipOnBottom(
+    anchorElementRect: DOMRect, 
+    tooltipConfig: ReturnType<typeof getTooltipConfig>, 
+    tooltipElement: HTMLDivElement,
+    scrollOffset: { x: number, y: number },
+) {
     // Calculate and set Tooltip width
     const tooltipAvailableMaxWidth = Math.min(window.innerWidth - (tooltipConfig.tooltipOffsetFromViewport * 2), tooltipConfig.tooltipMaxWidth)
     tooltipElement.style.maxWidth = `${tooltipAvailableMaxWidth}px`
@@ -442,8 +488,8 @@ function tryMountTooltipOnBottom(anchorElementRect: DOMRect, tooltipConfig: Retu
         || anchorElementRect.right < tooltipLeft + tooltipConfig.arrowMinOffsetFromTooltipCorner * 2) return false
 
     // Set Tooltip position
-    tooltipElement.style.top = `${tooltipTop}px`
-    tooltipElement.style.left = `${tooltipLeft}px`
+    tooltipElement.style.top = `${tooltipTop + scrollOffset.y}px`
+    tooltipElement.style.left = `${tooltipLeft + scrollOffset.x}px`
 
     return true
 }
@@ -552,6 +598,7 @@ function hideTooltip(uuid: string) {
     const tooltipElement = tooltips[uuid]?.tooltipElement
 
     resetResizeReferences(uuid)
+    removeHideOnScrollListeners()
 
     // Remove Arrow element from Tooltip, because it needs to be rebuilt every time Tooltip is showed again
     tooltipElement.querySelector(`.${arrowElementClass}`)?.remove()
