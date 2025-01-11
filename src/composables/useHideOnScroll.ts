@@ -1,20 +1,22 @@
 
+import type { ScrollContainers, ScrollContainer } from '@/types/scrollContainer'
+
 export default function useHideOnScroll() {
-    let scrollContainers: Array<HTMLElement> = []
+    let scrollContainers: ScrollContainers = []
 
     const handleHideOnScroll = (anchorElement: HTMLElement, hideOverlay: () => void) => {
         getScrollContainers(anchorElement)
 
-        if (scrollContainers.length > 0) {
-            for (const scrollContainer of scrollContainers) {
-                scrollContainer.addEventListener('scroll', hideOverlay)
-            }
-        } 
-        
-        window.addEventListener('scroll', () => {
-            hideOverlay()
-            removeHideOnScrollListeners(hideOverlay)
-        })
+        for (const scrollContainer of scrollContainers) {
+            scrollContainer.element.addEventListener(
+                'scroll', 
+                () => {
+                    hideOverlay()
+                    removeHideOnScrollListeners()
+                }, 
+                { signal: scrollContainer.eventController.signal }
+            )
+        }
     }
 
     const getScrollContainers = (anchorElement: HTMLElement) => {
@@ -25,25 +27,34 @@ export default function useHideOnScroll() {
                 const computedStyle = window.getComputedStyle(currentElement)
 
                 if (computedStyle.overflow === 'auto' || computedStyle.overflow === 'scroll') {
-                    scrollContainers.push(currentElement)
+                    const scrollContainer: ScrollContainer = {
+                        element: currentElement,
+                        eventController: new AbortController()
+                    }
+
+                    scrollContainers.push(scrollContainer)
                 }
             }
 
             currentElement = currentElement.parentElement
-        } 
+        }
+
+        // Add window as a scroll container
+        const scrollContainer: ScrollContainer = {
+            element: window,
+            eventController: new AbortController()
+        }
+
+        scrollContainers.push(scrollContainer)
     }
 
-    const removeHideOnScrollListeners = (hideOverlay: () => void) => {
-        if (scrollContainers.length > 0) {
-            for (const scrollContainer of scrollContainers) {
-                scrollContainer.removeEventListener('scroll', hideOverlay)
-            }
+    const removeHideOnScrollListeners = () => {
+        for (const scrollContainer of scrollContainers) {
+            scrollContainer.eventController.abort()
+        }
 
-            scrollContainers = []
-        } 
-        
-        window.removeEventListener('scroll', hideOverlay)
+        scrollContainers = []
     }
     
-    return { handleHideOnScroll }
+    return { handleHideOnScroll, removeHideOnScrollListeners }
 }

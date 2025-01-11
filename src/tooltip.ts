@@ -7,7 +7,7 @@ import TooltipLocalConfig from "./types/tooltipLocalConfig"
 import useHideOnScroll from './composables/useHideOnScroll'
 import useHideOnResize from "./composables/useHideOnResize"
 
-const { handleHideOnScroll } = useHideOnScroll()
+const { handleHideOnScroll, removeHideOnScrollListeners } = useHideOnScroll()
 const { handleHideOnResize, resetResizeReferences } = useHideOnResize()
 
 const tooltipElementClass = 'zero-tooltip__container'
@@ -307,6 +307,7 @@ async function onMouseLeave(tooltipConfig: ReturnType<typeof getTooltipConfig>, 
     }
 
     hideTooltip(uuid)
+    removeHideOnScrollListeners()
 }
 
 function tryMountTooltipOnLeft(anchorElementRect: DOMRect, tooltipConfig: ReturnType<typeof getTooltipConfig>, tooltipElement: HTMLDivElement) {
