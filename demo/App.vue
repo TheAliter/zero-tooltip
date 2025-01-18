@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div style="padding: 20px;">
         <h1 style="text-align: center;">Playground</h1>
 
         <!-- TOP-LEFT button -->
@@ -38,11 +38,13 @@
             Trying bottom
         </button>
 
-
         <!-- Overlay Panel behavior test -->
         <h2 style="margin-bottom: 0;">Test z-index</h2>
-        <h2 style="margin-block: 0;">Test position for tooltip with target in overlay (which enters with transition)</h2>
-        <h2 style="margin-top: 0;">Test always show in overlay</h2>
+        <ul>
+            <li style="margin-block: 0;">Test position for tooltip with target in overlay (which enters with transition)</li>
+            <li style="margin-top: 0;">Test always show in overlay</li>
+        </ul>
+
         <button type="button" @click="toggle">
             Open Overlay panel
         </button>
@@ -73,8 +75,10 @@
 
         <div style="margin-top: 60px;">
             <h2 style="margin-block: 0;">Test hide/show delay </h2>
-            <h2 style="margin-block: 0;">Test show multiple tooltip at the same time</h2>
-            <h2 style="margin-top: 0;">Test select tooltip text for hide delay</h2>
+            <ul>
+                <li style="margin-block: 0;">Test show multiple tooltip at the same time</li>
+                <li style="margin-top: 0;">Test select tooltip text for hide delay</li>
+            </ul>
 
             <button 
                 v-tooltip="{
@@ -99,8 +103,12 @@
 
         <div style="margin-top: 60px;">
             <h2 style="margin-bottom: 0">Test always show/on</h2>
-            <h2 style="margin-block: 0;">Test multiple always show/on</h2>
-            <h2 style="margin-top: 0;">Test always show/on with initial scroll offset X and Y</h2>
+
+            <ul>
+                <li style="margin-block: 0;">Test multiple always show/on</li>
+                <li style="margin-block: 0;">Test reposition on window resize</li>
+                <li style="margin-top: 0;">Test always show/on with initial scroll offset X and Y</li>
+            </ul>
 
             <button 
                 v-tooltip="{
@@ -157,6 +165,27 @@
                 style="margin-left: 20px;">
 
                 Hide on scroll (with hide delay)
+            </button>
+        </div>
+
+        <div style="margin-top: 40px;">
+            <div>
+                <h2 style="margin-bottom: 0">Test empty tooltip text value</h2>
+
+                <ul style="font-size: 12px;;">
+                    <li>Test with empty string as tooltip text</li>
+                    <li>Test with empty string as tooltip text and show option</li>
+                </ul>
+            </div>
+    
+            <button 
+                v-tooltip="{
+                    content: '',
+                    show: false,
+                }" 
+                style="margin-top: 20px;">
+    
+                Empty tooltip (show now show and show now throw error)
             </button>
         </div>
     </div>

@@ -6,9 +6,11 @@ import TooltipPositions from "./types/tooltipPositions"
 import TooltipLocalConfig from "./types/tooltipLocalConfig"
 import useHideOnScroll from './composables/useHideOnScroll'
 import useHideOnResize from "./composables/useHideOnResize"
+import useRepositionOnResize from "./composables/useRepositionOnResize"
 
 const { handleHideOnScroll, removeHideOnScrollListeners } = useHideOnScroll()
 const { handleHideOnResize, resetResizeReferences } = useHideOnResize()
+const { handleRepositionOnResize, removeRepositionOnResizeHandler } = useRepositionOnResize()
 
 const tooltipElementClass = 'zero-tooltip__container'
 const textElementClass = 'zero-tooltip__text'
@@ -173,8 +175,12 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
 function getTooltipText(localConfig: string | TooltipLocalConfig) {
     const tooltipText = typeof(localConfig) === 'string' ? localConfig : localConfig.content
 
-    if (!tooltipText) {
-        throw new Error("Please enter valid tooltip value");
+    if (typeof(localConfig) === 'string' && tooltipText.trim() === '') {
+        throw new Error("Tooltip text must not be empty string OR set option 'show' to false")
+    }
+
+    if (typeof(localConfig) !== 'string' && tooltipText.trim() === '' && localConfig.show !== false) {
+        throw new Error("Tooltip 'content' must not be empty string OR set option 'show' to false")
     }
 
     return tooltipText
@@ -209,7 +215,10 @@ function initTooltip(targetElement: HTMLElement, tooltipConfig: ReturnType<typeo
         tooltipElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement, uuid, { isTooltip: true }), { signal: mouseEnterEventControllers.tooltipElementMouseEnter.signal })
         tooltipElement.addEventListener('mouseleave', () => onMouseLeave(tooltipConfig, uuid, { isTooltip: true }), { signal: mouseEnterEventControllers.tooltipElementMouseLeave.signal })
     } else {
-        setTimeout(() => mountTooltipElement(anchorElement, tooltipConfig, tooltipElement, 'absolute'), 0)
+        setTimeout(() => { 
+            mountTooltipElement(anchorElement, tooltipConfig, tooltipElement, 'absolute')
+            handleRepositionOnResize(uuid, () => repositionTooltipElement(anchorElement, tooltipConfig, tooltipElement, 'absolute'))
+        }, 0)
     }
 
     return {
@@ -321,6 +330,48 @@ function mountTooltipElement(
     }
 
     return false
+}
+
+function repositionTooltipElement(
+    anchorElement: HTMLElement, 
+    tooltipConfig: ReturnType<typeof getTooltipConfig>, 
+    tooltipElement: HTMLDivElement,
+    positionStrategy?: 'fixed' | 'absolute'
+) {
+    // Remove Arrow element from Tooltip, because it needs to be rebuilt every time Tooltip is repositioned
+    tooltipElement.querySelector(`.${arrowElementClass}`)?.remove()
+
+    let scrollOffset = { x: 0, y: 0 }
+
+    if (positionStrategy === 'absolute') {
+        scrollOffset.x = window.scrollX
+        scrollOffset.y = window.scrollY
+    }
+
+    const anchorElementRect = anchorElement.getBoundingClientRect()
+
+    // Find suitable Tooltip position
+    let hasNeededDisplaySpace = false
+    let currentTooltipPosition = tooltipConfig.tooltipPosition
+    for (let i = 0; i < 4; i++) {
+        currentTooltipPosition = tooltipConfig.tooltipPositions[tooltipConfig.tooltipPosition][i]
+
+        if (currentTooltipPosition === 'left') {
+            hasNeededDisplaySpace = tryMountTooltipOnLeft(anchorElementRect, tooltipConfig, tooltipElement, scrollOffset)
+        } else if (currentTooltipPosition === 'top') {
+            hasNeededDisplaySpace = tryMountTooltipOnTop(anchorElementRect, tooltipConfig, tooltipElement, scrollOffset)
+        } else if (currentTooltipPosition === 'right') {
+            hasNeededDisplaySpace = tryMountTooltipOnRight(anchorElementRect, tooltipConfig, tooltipElement, scrollOffset)
+        } else if (currentTooltipPosition === 'bottom') {
+            hasNeededDisplaySpace = tryMountTooltipOnBottom(anchorElementRect, tooltipConfig, tooltipElement, scrollOffset)
+        }
+
+        if (hasNeededDisplaySpace) break
+    }
+
+    if (hasNeededDisplaySpace) {
+        drawArrow(anchorElementRect, currentTooltipPosition, tooltipConfig, tooltipElement)
+    }
 }
 
 async function onMouseLeave(tooltipConfig: ReturnType<typeof getTooltipConfig>, uuid: string, options?: { isTooltip?: boolean }) {
@@ -621,6 +672,8 @@ function destroyTooltip(tooltip: ReturnType<typeof initTooltip>) {
     for (const controller of Object.values(tooltip.mouseEnterEventControllers)) {
         controller.abort()
     }
+
+    removeRepositionOnResizeHandler(uuid)
 }
 
 export default ZeroTooltip
