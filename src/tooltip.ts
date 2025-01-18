@@ -665,6 +665,7 @@ function destroyTooltip(tooltip: ReturnType<typeof initTooltip>) {
     const uuid = tooltip.tooltipElement.dataset.uuid
 
     if (uuid) {
+        removeRepositionOnResizeHandler(uuid)
         hideTooltip(uuid)
         delete tooltips[uuid]
     }
@@ -672,8 +673,6 @@ function destroyTooltip(tooltip: ReturnType<typeof initTooltip>) {
     for (const controller of Object.values(tooltip.mouseEnterEventControllers)) {
         controller.abort()
     }
-
-    removeRepositionOnResizeHandler(uuid)
 }
 
 export default ZeroTooltip
