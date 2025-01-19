@@ -175,13 +175,14 @@
                 <ul style="font-size: 12px;;">
                     <li>Test with empty string as tooltip text</li>
                     <li>Test with empty string as tooltip text and show option</li>
+                    <li>Test with empty null/undefined as tooltip text and show option</li>
                 </ul>
             </div>
     
             <button 
                 v-tooltip="{
                     content: '',
-                    show: false,
+                    show: false
                 }" 
                 style="margin-top: 20px;">
     

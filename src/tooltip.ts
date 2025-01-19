@@ -173,17 +173,41 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
 }
 
 function getTooltipText(localConfig: string | TooltipLocalConfig) {
-    const tooltipText = typeof(localConfig) === 'string' ? localConfig : localConfig.content
-
-    if (typeof(localConfig) === 'string' && tooltipText.trim() === '') {
-        throw new Error("Tooltip text must not be empty string OR set option 'show' to false")
+    if (localConfig === undefined || localConfig === null) {
+        throw new Error("Tooltip text or 'content' option must be defined ('undefined' or 'null' provided)")
     }
 
-    if (typeof(localConfig) !== 'string' && tooltipText.trim() === '' && localConfig.show !== false) {
-        throw new Error("Tooltip 'content' must not be empty string OR set option 'show' to false")
+    if (typeof(localConfig) === 'string') {
+        const tooltipText = localConfig.trim()
+
+        if (tooltipText === '') {
+            throw new Error("Tooltip text must not be empty string OR set option 'show' to 'false'")
+        }
+
+        return tooltipText
     }
 
-    return tooltipText
+    if (Object.hasOwn(localConfig, 'content')) {
+        if (localConfig.show === false) {
+            return ''
+        }
+
+        if (localConfig.content === undefined || localConfig.content === null) {
+            throw new Error("Tooltip 'content' must be defined ('undefined' or 'null' provided) OR set option 'show' to 'false'")
+        }
+
+        if (typeof(localConfig.content) === 'string') {
+            const tooltipText = localConfig.content.trim()
+
+            if (tooltipText === '') {
+                throw new Error("Tooltip 'content' must not be empty string OR set option 'show' to 'false'")
+            }
+
+            return tooltipText
+        }
+    }
+
+    throw new Error("Tooltip text or 'content' option must be defined with correct type")
 }
 
 function initTooltip(targetElement: HTMLElement, tooltipConfig: ReturnType<typeof getTooltipConfig>, uuid: string) {
