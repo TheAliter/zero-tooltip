@@ -42,6 +42,7 @@ const defaultShouldShow = true
 const defaultShowDelay = 0
 const defaultHideDelay = 0
 const defaultAlwaysOn = false
+const defaultShowWarnings = true
 
 const tooltips: {[key: string]: ReturnType<typeof initTooltip>} = {}
 
@@ -121,6 +122,7 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
     let showDelay = globalConfig?.showDelay ?? defaultShowDelay
     let hideDelay = globalConfig?.hideDelay ?? defaultHideDelay
     let alwaysOn = defaultAlwaysOn
+    let showWarnings = globalConfig?.showWarnings ?? defaultShowWarnings
 
     // Check if local config is defined (it's defined when local config is Object and not a string, because string means that just Tooltip text is given)
     if (typeof(localConfig) !== 'string') {
@@ -168,42 +170,27 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
         shouldShow,
         showDelay,
         hideDelay,
-        alwaysOn
+        alwaysOn,
+        showWarnings,
     }
 }
 
 function getTooltipText(localConfig: string | TooltipLocalConfig) {
     if (localConfig === undefined || localConfig === null) {
-        throw new Error("Tooltip text or 'content' option must be defined ('undefined' or 'null' provided)")
+        return ''
     }
 
     if (typeof(localConfig) === 'string') {
-        const tooltipText = localConfig.trim()
-
-        if (tooltipText === '') {
-            throw new Error("Tooltip text must not be empty string OR set option 'show' to 'false'")
-        }
-
-        return tooltipText
+        return localConfig
     }
 
     if (Object.hasOwn(localConfig, 'content')) {
-        if (localConfig.show === false) {
+        if (localConfig.content === undefined || localConfig.content === null) {
             return ''
         }
 
-        if (localConfig.content === undefined || localConfig.content === null) {
-            throw new Error("Tooltip 'content' must be defined ('undefined' or 'null' provided) OR set option 'show' to 'false'")
-        }
-
         if (typeof(localConfig.content) === 'string') {
-            const tooltipText = localConfig.content.trim()
-
-            if (tooltipText === '') {
-                throw new Error("Tooltip 'content' must not be empty string OR set option 'show' to 'false'")
-            }
-
-            return tooltipText
+            return localConfig.content
         }
     }
 
@@ -232,17 +219,19 @@ function initTooltip(targetElement: HTMLElement, tooltipConfig: ReturnType<typeo
         tooltipElementMouseLeave: new AbortController(),
     }
 
-    if (!tooltipConfig.alwaysOn) {
+    if (tooltipConfig.tooltipText === '') {
+        if (tooltipConfig.shouldShow && tooltipConfig.showWarnings) console.warn('Tooltip text is empty')
+    } else if (tooltipConfig.alwaysOn) {
+        setTimeout(() => { 
+            mountTooltipElement(anchorElement, tooltipConfig, tooltipElement, 'absolute')
+            handleRepositionOnResize(uuid, () => repositionTooltipElement(anchorElement, tooltipConfig, tooltipElement, 'absolute'))
+        }, 0)
+    } else {
         anchorElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement, uuid), { signal: mouseEnterEventControllers.anchorElementMouseEnter.signal })
         anchorElement.addEventListener('mouseleave', () => onMouseLeave(tooltipConfig, uuid), { signal: mouseEnterEventControllers.anchorElementMouseLeave.signal })
 
         tooltipElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement, uuid, { isTooltip: true }), { signal: mouseEnterEventControllers.tooltipElementMouseEnter.signal })
         tooltipElement.addEventListener('mouseleave', () => onMouseLeave(tooltipConfig, uuid, { isTooltip: true }), { signal: mouseEnterEventControllers.tooltipElementMouseLeave.signal })
-    } else {
-        setTimeout(() => { 
-            mountTooltipElement(anchorElement, tooltipConfig, tooltipElement, 'absolute')
-            handleRepositionOnResize(uuid, () => repositionTooltipElement(anchorElement, tooltipConfig, tooltipElement, 'absolute'))
-        }, 0)
     }
 
     return {

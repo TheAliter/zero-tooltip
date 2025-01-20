@@ -18,6 +18,7 @@ type TooltipConfig = {
     zIndex?: number | string,
     showDelay?: number,
     hideDelay?: number,
+    showWarnings?: boolean,
 }
 
 export default TooltipConfig

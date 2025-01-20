@@ -176,14 +176,13 @@
                     <li>Test with empty string as tooltip text</li>
                     <li>Test with empty string as tooltip text and show option</li>
                     <li>Test with empty null/undefined as tooltip text and show option</li>
+                    <li>Test with empty null/undefined as tooltip text and after timeout set some acceptable value</li>
+                    <li>Same as before but with `show` and `alwaysOn` option</li>
                 </ul>
             </div>
     
             <button 
-                v-tooltip="{
-                    content: '',
-                    show: false
-                }" 
+                v-tooltip="config" 
                 style="margin-top: 20px;">
     
                 Empty tooltip (show now show and show now throw error)
@@ -201,6 +200,15 @@
     const toggle = (event) => {
         overlayPanelElement.value.toggle(event);
     }
+
+    const config = ref({
+        content: undefined,
+        show: true,
+    });
+
+    setTimeout(() => {
+        config.value.content = 'New tooltip text';
+    }, 2000);
 </script>
 
 <style>

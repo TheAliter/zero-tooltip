@@ -78,6 +78,7 @@ const tooltipConfig: ZeroTooltipConfig = {
     zIndex: ... ,
     showDelay: ... ,
     hideDelay: ... ,
+    showWarnings: ... ,
 }
 
 app.use(ZeroTooltip, tooltipConfig)
@@ -137,6 +138,7 @@ const tooltipConfig: ZeroTooltipLocalConfig = reactive({
 | zIndex | *1* | number &#124; string | `z-index` css property value of tooltip |
 | showDelay | *0* | number | Delay in milliseconds after which to show tooltip while hovering over element |
 | hideDelay | *0* | number | Delay in milliseconds after which to hide tooltip when leaving element boundaries |
+| showWarnings | *true* | boolean | Whether to show warning about empty tooltip text value in cases when tooltip was expected to be shown |
 
 ## ZeroTooltipLocalConfig
 Same as [ZeroTooltipConfig](#ZeroTooltipConfig) with following additions:
