@@ -7,6 +7,7 @@ type TooltipLocalConfig = {
      */
 
     content: string,
+    
     /**
      * Define whether tooltip should be shown on hover (enabled/disabled).
      */
