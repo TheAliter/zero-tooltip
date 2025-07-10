@@ -101,9 +101,10 @@
             </button>
         </div>
 
-        <div style="margin-top: 60px;">
-            <h2 style="margin-bottom: 0">Test always show/on</h2>
+        <h2 style="margin-bottom: 0; margin-top: 60px;">Test always show/on</h2>
+        <button @click="showAlwaysOnBlock = !showAlwaysOnBlock">Toggle block visibility</button>
 
+        <div v-if="showAlwaysOnBlock" >
             <ul>
                 <li style="margin-block: 0;">Test multiple always show/on</li>
                 <li style="margin-block: 0;">Test reposition on window resize</li>
@@ -218,7 +219,7 @@
                 v-tooltip="config" 
                 style="margin-top: 20px;">
     
-                Empty tooltip (show now show and show now throw error)
+                Empty tooltip (throw error in console)
             </button>
         </div>
     </div>
@@ -228,6 +229,7 @@
     import { ref, onMounted } from "vue";
     import OverlayPanel from 'primevue/overlaypanel';
 
+    const showAlwaysOnBlock = ref(true);
     const alwaysOnIntervalShowTooltip = ref(false)
 
     onMounted(() => {

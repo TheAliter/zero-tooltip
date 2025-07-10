@@ -50,7 +50,11 @@ const ZeroTooltip = (globalConfig?: TooltipConfig): Directive => {
     return {
         created: (targetElement: HTMLElement, binding, vnode) => {
             const uuid = uuidv4()
-            vnode.el.$_tooltip = { uuid: uuid } 
+            vnode.el.$_tooltip = { 
+                uuid: uuid, 
+                previousValue: binding.value, 
+                prevArg: binding.arg 
+            }
 
             buildTooltip(binding.value, globalConfig, binding.arg, targetElement, uuid)
 
@@ -68,11 +72,23 @@ const ZeroTooltip = (globalConfig?: TooltipConfig): Directive => {
         updated: (targetElement: HTMLElement, binding, vnode) => {
             const uuid = vnode.el.$_tooltip.uuid
 
-            if (tooltips[uuid]) {
-                destroyTooltip(tooltips[uuid])
-            }
+            const prevValue = vnode.el.$_tooltip.prevValue
+            const prevArg = vnode.el.$_tooltip.prevArg
 
-            buildTooltip(binding.value, globalConfig, binding.arg, targetElement, uuid)
+            const isSameValue = prevValue === binding.value ||
+                (typeof prevValue === 'object' && typeof binding.value === 'object' &&
+                    JSON.stringify(prevValue) === JSON.stringify(binding.value))
+
+            if (!isSameValue || prevArg !== binding.arg) {
+                if (tooltips[uuid]) {
+                    destroyTooltip(tooltips[uuid])
+                }
+
+                buildTooltip(binding.value, globalConfig, binding.arg, targetElement, uuid)
+
+                vnode.el.$_tooltip.prevValue = binding.value
+                vnode.el.$_tooltip.prevArg = binding.arg
+            }
         },
 
         beforeUnmount: (_, __, vnode) => {
