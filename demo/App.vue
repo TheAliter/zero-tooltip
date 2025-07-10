@@ -107,7 +107,8 @@
             <ul>
                 <li style="margin-block: 0;">Test multiple always show/on</li>
                 <li style="margin-block: 0;">Test reposition on window resize</li>
-                <li style="margin-top: 0;">Test always show/on with initial scroll offset X and Y</li>
+                <li style="margin-block: 0;">Test always show/on with initial scroll offset X and Y</li>
+                <li style="margin-block: 0;">Test hover trigger when alwaysOn is used</li>
             </ul>
 
             <button 
@@ -133,6 +134,28 @@
                     Always show
                 </button>
             </div>
+
+            <button 
+                v-tooltip="{
+                    content: 'I am sometimes visible',
+                    alwaysOn: alwaysOnSometimesShow,
+                }" 
+                style="margin-top: 40px;">
+
+                Sometimes show (when not visible, hover shouldn't work)
+            </button>
+
+
+            <button 
+                v-tooltip="{
+                    show: true,
+                    content: 'I am sometimes visible',
+                    alwaysOn: alwaysOnSometimesShow,
+                }" 
+                style="margin-top: 40px;">
+
+                Sometimes show (when not visible, hover should work)
+            </button>
         </div>
 
         <div style="margin-top: 60px; border: 1px solid red; height: 500px;">
@@ -197,6 +220,7 @@
 
     const overlayPanelElement = ref();
 
+
     const toggle = (event) => {
         overlayPanelElement.value.toggle(event);
     }
@@ -209,6 +233,11 @@
     setTimeout(() => {
         config.value.content = 'New tooltip text';
     }, 2000);
+    
+    const alwaysOnSometimesShow = ref(false);
+    setInterval(() => {
+        alwaysOnSometimesShow.value = !alwaysOnSometimesShow.value;
+    }, 3000);
 </script>
 
 <style>

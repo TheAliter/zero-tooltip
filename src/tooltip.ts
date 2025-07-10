@@ -145,10 +145,14 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
         if (localConfig.arrowClasses !== undefined) arrowClasses = localConfig.arrowClasses
         if (localConfig.arrowMinOffsetFromTooltipCorner !== undefined) arrowMinOffsetFromTooltipCorner = localConfig.arrowMinOffsetFromTooltipCorner
         if (localConfig.zIndex !== undefined) zIndex = localConfig.zIndex
-        if (localConfig.show !== undefined) shouldShow = localConfig.show
         if (localConfig.showDelay !== undefined) showDelay = localConfig.showDelay
         if (localConfig.hideDelay !== undefined) hideDelay = localConfig.hideDelay
-        if (localConfig.alwaysOn !== undefined) alwaysOn = localConfig.alwaysOn
+        if (localConfig.alwaysOn !== undefined) {
+            shouldShow = false
+            alwaysOn = localConfig.alwaysOn
+        } 
+
+        if (localConfig.show !== undefined) shouldShow = localConfig.show
     }
 
     return {

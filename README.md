@@ -145,7 +145,7 @@ Same as [ZeroTooltipConfig](#ZeroTooltipConfig) with following additions:
 | Property | <div style="width:260px">Default value</div> | Type | Details |
 |---|---|---|---|
 | content | *undefined* | string | ***REQUIRED***. Tooltip text. Text is rendered as HTML, thus it's possible to give simple HTML structure, e.g., `<h1>Tooltip text</h1>` |
-| show | *true* | boolean | Define whether tooltip should be shown on hover (enabled/disabled)|
+| show | *true / false* | boolean | Define whether tooltip should be shown on hover (enabled/disabled). <br><br> Default value is `false` if `alwaysOn` is set, otherwise it's `true`. |
 | alwaysOn | *false* | boolean | Define whether to show tooltip (on mount) without needing hover trigger |
 
 ## License
