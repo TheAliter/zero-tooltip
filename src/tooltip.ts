@@ -226,10 +226,10 @@ function initTooltip(targetElement: HTMLElement, tooltipConfig: ReturnType<typeo
     if (tooltipConfig.tooltipText === '') {
         if (tooltipConfig.shouldShow && tooltipConfig.showWarnings) console.warn('Tooltip text is empty')
     } else if (tooltipConfig.alwaysOn) {
-        setTimeout(() => { 
+        queueMicrotask(() => {
             mountTooltipElement(anchorElement, tooltipConfig, tooltipElement, 'absolute')
             handleRepositionOnResize(uuid, () => repositionTooltipElement(anchorElement, tooltipConfig, tooltipElement, 'absolute'))
-        }, 0)
+        })
     } else {
         anchorElement.addEventListener('mouseenter', () => onMouseEnter(anchorElement, tooltipConfig, tooltipElement, uuid), { signal: mouseEnterEventControllers.anchorElementMouseEnter.signal })
         anchorElement.addEventListener('mouseleave', () => onMouseLeave(tooltipConfig, uuid), { signal: mouseEnterEventControllers.anchorElementMouseLeave.signal })

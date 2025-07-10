@@ -137,7 +137,7 @@
 
             <button 
                 v-tooltip="{
-                    content: 'I am sometimes visible',
+                    content: 'I am sometimes visible 3',
                     alwaysOn: alwaysOnSometimesShow,
                 }" 
                 style="margin-top: 40px;">
@@ -149,12 +149,22 @@
             <button 
                 v-tooltip="{
                     show: true,
-                    content: 'I am sometimes visible',
+                    content: 'I am sometimes visible 4',
                     alwaysOn: alwaysOnSometimesShow,
                 }" 
                 style="margin-top: 40px;">
 
                 Sometimes show (when not visible, hover should work)
+            </button>
+
+            <button 
+                v-tooltip="{
+                    content: 'I am sometimes visible 5',
+                    alwaysOn: alwaysOnIntervalShowTooltip,
+                }" 
+                style="margin-top: 40px;">
+
+                Sometimes show (using interval to toggle visibility)
             </button>
         </div>
 
@@ -215,8 +225,24 @@
 </template>
 
 <script setup lang="ts">
-    import { ref } from "vue";
+    import { ref, onMounted } from "vue";
     import OverlayPanel from 'primevue/overlaypanel';
+
+    const alwaysOnIntervalShowTooltip = ref(false)
+
+    onMounted(() => {
+        setInterval(() => {
+            alwaysOnIntervalShowTooltip.value = !alwaysOnIntervalShowTooltip.value
+        }, 1000)
+
+        setInterval(() => {
+            alwaysOnIntervalShowTooltip.value = !alwaysOnIntervalShowTooltip.value
+        }, 400)
+
+        setInterval(() => {
+            alwaysOnIntervalShowTooltip.value = !alwaysOnIntervalShowTooltip.value
+        }, 2000)
+    })
 
     const overlayPanelElement = ref();
 
