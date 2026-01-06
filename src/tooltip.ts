@@ -286,7 +286,7 @@ async function onMouseEnter(
         uuid: string,
         options?: { isTooltip?: boolean }
     ) {
-    if (!tooltipConfig.shouldShow) return 
+    if (tooltips[uuid] === undefined || !tooltipConfig.shouldShow) return 
 
     let _showDelay = options?.isTooltip ? 0 : tooltipConfig.showDelay
 
