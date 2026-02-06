@@ -288,17 +288,22 @@ async function onMouseEnter(
     ) {
     if (tooltips[uuid] === undefined || !tooltipConfig.shouldShow) return 
 
-    let _showDelay = options?.isTooltip ? 0 : tooltipConfig.showDelay
-
-    // If mouse leaves from Tooltip and enters to Anchor element in short time, show Tooltip immediately
-    const mouseLeaveFromTooltipBufferTime = 100
-    if (!options?.isTooltip && Date.now() - tooltips[uuid].mouseEventState.lastTooltipMouseLeaveTimestamp <= mouseLeaveFromTooltipBufferTime) {
-        _showDelay = 0
-    }
-
     const currentInstanceId = Date.now()
     tooltips[uuid].mouseEventState.currentInstanceId = currentInstanceId
     tooltips[uuid].mouseEventState.isHoveringOverAnchorElement = true
+
+    // When entering the tooltip itself, only update state to prevent hiding - don't re-mount
+    if (options?.isTooltip) {
+        return
+    }
+
+    let _showDelay = tooltipConfig.showDelay
+
+    // If mouse leaves from Tooltip and enters to Anchor element in short time, show Tooltip immediately
+    const mouseLeaveFromTooltipBufferTime = 100
+    if (Date.now() - tooltips[uuid].mouseEventState.lastTooltipMouseLeaveTimestamp <= mouseLeaveFromTooltipBufferTime) {
+        _showDelay = 0
+    }
 
     if (_showDelay > 0) {
         await new Promise(resolve => setTimeout(resolve, _showDelay))
@@ -320,6 +325,11 @@ function mountTooltipElement(
     tooltipElement: HTMLDivElement,
     positionStrategy?: 'fixed' | 'absolute'
 ) {
+    // Skip if tooltip is already mounted and visible
+    if (tooltipElement.isConnected && tooltipElement.style.opacity === '1') {
+        return true
+    }
+
     let scrollOffset = { x: 0, y: 0 }
 
     if (positionStrategy === 'absolute') {
@@ -408,6 +418,8 @@ function repositionTooltipElement(
 }
 
 async function onMouseLeave(tooltipConfig: ReturnType<typeof getTooltipConfig>, uuid: string, options?: { isTooltip?: boolean }) {
+    if (tooltips[uuid] === undefined) return
+
     if (options?.isTooltip) {
         tooltips[uuid].mouseEventState.lastTooltipMouseLeaveTimestamp = Date.now()
     }
@@ -419,7 +431,10 @@ async function onMouseLeave(tooltipConfig: ReturnType<typeof getTooltipConfig>, 
     if (tooltipConfig.hideDelay > 0) {
         await new Promise(resolve => setTimeout(resolve, tooltipConfig.hideDelay))
 
-        if (tooltips[uuid].mouseEventState.isHoveringOverAnchorElement || tooltips[uuid].mouseEventState.currentInstanceId !== currentInstanceId) return
+        if (tooltips[uuid] === undefined 
+            || tooltips[uuid].mouseEventState.isHoveringOverAnchorElement 
+            || tooltips[uuid].mouseEventState.currentInstanceId !== currentInstanceId) 
+            return
     }
 
     hideTooltip(uuid)
