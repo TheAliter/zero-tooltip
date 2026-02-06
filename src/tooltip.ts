@@ -32,10 +32,10 @@ const defaultTooltipOffsetFromViewport = 20
 const defaultTooltipMinWidth = 100
 const defaultTooltipMaxWidth = 250
 const defaultTooltipBorderWidth = 0
-const defaultTooltipClasses = 'zt-fixed zt-opacity-0 zt-inline-block zt-w-fit zt-py-1.5 zt-px-2.5 zt-rounded-md zt-bg-[#495057] zt-shadow-[0_2px_12px_0_rgba(0,0,0,0.1)] zt-box-border'
-const defaultTextClasses = 'zt-text-sm zt-text-white zt-whitespace-pre-wrap zt-break-words'
+const defaultTooltipClasses = 'zero-tooltip__fixed zero-tooltip__opacity-0 zero-tooltip__inline-block zero-tooltip__w-fit zero-tooltip__py-1-5 zero-tooltip__px-2-5 zero-tooltip__rounded-md zero-tooltip__bg-gray zero-tooltip__shadow zero-tooltip__box-border'
+const defaultTextClasses = 'zero-tooltip__text-sm zero-tooltip__text-white zero-tooltip__whitespace-pre-wrap zero-tooltip__break-words'
 const defaultArrowSize = 5
-const defaultArrowClasses = 'zt-absolute zt-border-solid zt-border-[#495057]'
+const defaultArrowClasses = 'zero-tooltip__absolute zero-tooltip__border-solid zero-tooltip__border-gray'
 const defaultMinArrowOffsetFromTooltipCorner = 6
 const defaultZIndex = 1
 const defaultShouldShow = true
@@ -323,7 +323,7 @@ function mountTooltipElement(
     let scrollOffset = { x: 0, y: 0 }
 
     if (positionStrategy === 'absolute') {
-        tooltipElement.classList.replace('zt-fixed', 'zt-absolute')
+        tooltipElement.classList.replace('zero-tooltip__fixed', 'zero-tooltip__absolute')
         scrollOffset.x = window.scrollX
         scrollOffset.y = window.scrollY
     }
@@ -597,22 +597,22 @@ function drawArrow(anchorElementRect: DOMRect, currentTooltipPosition: TooltipPo
 
     switch (currentTooltipPosition) {
         case "left": 
-            arrowClassForCorrectAngle = '!zt-border-y-transparent !zt-border-r-transparent'
+            arrowClassForCorrectAngle = 'zero-tooltip__border-y-transparent zero-tooltip__border-r-transparent'
             arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide - tooltipConfig.tooltipBorderWidth
             arrowLeft = tooltipElementRect.width - tooltipConfig.tooltipBorderWidth - arrowPositionAdjuster
             break;
         case "top":
-            arrowClassForCorrectAngle = '!zt-border-x-transparent !zt-border-b-transparent'
+            arrowClassForCorrectAngle = 'zero-tooltip__border-x-transparent zero-tooltip__border-b-transparent'
             arrowTop = tooltipElementRect.height - tooltipConfig.tooltipBorderWidth - arrowPositionAdjuster
             arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide - tooltipConfig.tooltipBorderWidth
             break;
         case "right":
-            arrowClassForCorrectAngle = '!zt-border-y-transparent !zt-border-l-transparent'
+            arrowClassForCorrectAngle = 'zero-tooltip__border-y-transparent zero-tooltip__border-l-transparent'
             arrowTop = anchorElementRect.top - tooltipElementRect.top + (anchorElementRect.height / 2) - arrowHalfLengthOfLongSide - tooltipConfig.tooltipBorderWidth
             arrowLeft = (-tooltipConfig.arrowSize * 2) - tooltipConfig.tooltipBorderWidth + arrowPositionAdjuster
             break;
         case "bottom":
-            arrowClassForCorrectAngle = '!zt-border-x-transparent !zt-border-t-transparent'
+            arrowClassForCorrectAngle = 'zero-tooltip__border-x-transparent zero-tooltip__border-t-transparent'
             arrowTop = (-tooltipConfig.arrowSize * 2) - tooltipConfig.tooltipBorderWidth + arrowPositionAdjuster
             arrowLeft = anchorElementRect.left - tooltipElementRect.left + (anchorElementRect.width / 2) - arrowHalfLengthOfLongSide - tooltipConfig.tooltipBorderWidth
             break;

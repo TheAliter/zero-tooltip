@@ -18,20 +18,17 @@
     "dist",
     "src"
   ],
-  "version": "2.0.1",
+  "version": "2.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npx tailwindcss -o ./src/style.css && vite build && vue-tsc -d --emitDeclarationOnly",
+    "build": "vite build && vue-tsc -d --emitDeclarationOnly",
     "preview": "vite preview"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.1.4",
     "@types/node": "20.6.2",
     "@vitejs/plugin-vue": "4.2.3",
-    "autoprefixer": "10.4.15",
-    "postcss": "8.4.29",
-    "tailwindcss": "3.3.3",
     "typescript": "5.0.2",
     "vite": "4.4.5",
     "vite-plugin-dts": "3.5.3",
