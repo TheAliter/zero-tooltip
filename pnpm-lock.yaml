@@ -8,12 +8,9 @@ importers:
 
   .:
     dependencies:
-      '@types/uuid':
-        specifier: 9.0.7
-        version: 9.0.7
       uuid:
-        specifier: 9.0.1
-        version: 9.0.1
+        specifier: 14.0.3
+        version: 14.0.3
     devDependencies:
       '@rollup/plugin-typescript':
         specifier: 11.1.4
@@ -276,9 +273,6 @@ packages:
 
   '@types/node@20.6.2':
     resolution: {integrity: sha512-Y+/1vGBHV/cYk6OI1Na/LHzwnlNCAfU3ZNGrc1LdRe/LAIbdDPTTv/HU3M7yXN448aTVDq3eKRm2cg7iKLb8gw==}
-
-  '@types/uuid@9.0.7':
-    resolution: {integrity: sha512-WUtIVRUZ9i5dYXefDEAI7sh9/O7jGvHg7Df/5O/gtH3Yabe5odI3UWopVR1qbPXQtvOxWu3mM4XxlYeZtMWF4g==}
 
   '@vitejs/plugin-vue@4.2.3':
     resolution: {integrity: sha512-R6JDUfiZbJA9cMiguQ7jxALsgiprjBeHL5ikpXfJCH62pPHtI+JdJ5xWj6Ev73yXSlYl86+blXn1kZHQ7uElxw==}
@@ -586,9 +580,8 @@ packages:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
     engines: {node: '>= 10.0.0'}
 
-  uuid@9.0.1:
-    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
-    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
+  uuid@14.0.3:
+    resolution: {integrity: sha512-Sc5u1VVln93y1Xnz4R+CunOZc7R9LUcTmhj7Rc7Eg3HVcf7rVn2FOoa812fe0W8p3jD7xeoGSYbfqCGGH2B6xw==}
     hasBin: true
 
   vite-plugin-dts@3.5.3:
@@ -830,8 +823,6 @@ snapshots:
   '@types/estree@1.0.9': {}
 
   '@types/node@20.6.2': {}
-
-  '@types/uuid@9.0.7': {}
 
   '@vitejs/plugin-vue@4.2.3(vite@4.4.5(@types/node@20.6.2))(vue@3.5.44(typescript@5.0.2))':
     dependencies:
@@ -1148,7 +1139,7 @@ snapshots:
 
   universalify@2.0.1: {}
 
-  uuid@9.0.1: {}
+  uuid@14.0.3: {}
 
   vite-plugin-dts@3.5.3(@types/node@20.6.2)(rollup@3.30.0)(typescript@5.0.2)(vite@4.4.5(@types/node@20.6.2)):
     dependencies:
