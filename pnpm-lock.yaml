@@ -9,15 +9,15 @@ importers:
   .:
     dependencies:
       '@types/uuid':
-        specifier: ^9.0.7
-        version: 9.0.8
+        specifier: 9.0.7
+        version: 9.0.7
       uuid:
-        specifier: ^9.0.1
+        specifier: 9.0.1
         version: 9.0.1
     devDependencies:
       '@rollup/plugin-typescript':
-        specifier: ^11.1.4
-        version: 11.1.6(rollup@3.30.0)(typescript@5.0.2)
+        specifier: 11.1.4
+        version: 11.1.4(rollup@3.30.0)(typescript@5.0.2)
       '@types/node':
         specifier: 20.6.2
         version: 20.6.2
@@ -212,11 +212,11 @@ packages:
   '@microsoft/tsdoc@0.17.1':
     resolution: {integrity: sha512-VHyYyyoH63jFoO3shpw9Zfijk5v/9p/VrClW35z0/q6ooK7sSmxpzOkS4iZPxs3vO4XtBW4H38HRAKkAMIK7DA==}
 
-  '@rollup/plugin-typescript@11.1.6':
-    resolution: {integrity: sha512-R92yOmIACgYdJ7dJ97p4K69I8gg6IEHt8M7dUBxN3W6nrO8uUxX5ixl0yU/N3aZTi8WhPuICvOHXQvF6FaykAA==}
+  '@rollup/plugin-typescript@11.1.4':
+    resolution: {integrity: sha512-WZRh5LBVLQXdKFICUId5J3eIpmjGURaBqntfg3GSZACgeOAFS+lOSMGTwfzDkELTaZVp/lWdMVNU3UkwCUBg/Q==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
-      rollup: ^2.14.0||^3.0.0||^4.0.0
+      rollup: ^2.14.0||^3.0.0
       tslib: '*'
       typescript: '>=3.7.0'
     peerDependenciesMeta:
@@ -277,8 +277,8 @@ packages:
   '@types/node@20.6.2':
     resolution: {integrity: sha512-Y+/1vGBHV/cYk6OI1Na/LHzwnlNCAfU3ZNGrc1LdRe/LAIbdDPTTv/HU3M7yXN448aTVDq3eKRm2cg7iKLb8gw==}
 
-  '@types/uuid@9.0.8':
-    resolution: {integrity: sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==}
+  '@types/uuid@9.0.7':
+    resolution: {integrity: sha512-WUtIVRUZ9i5dYXefDEAI7sh9/O7jGvHg7Df/5O/gtH3Yabe5odI3UWopVR1qbPXQtvOxWu3mM4XxlYeZtMWF4g==}
 
   '@vitejs/plugin-vue@4.2.3':
     resolution: {integrity: sha512-R6JDUfiZbJA9cMiguQ7jxALsgiprjBeHL5ikpXfJCH62pPHtI+JdJ5xWj6Ev73yXSlYl86+blXn1kZHQ7uElxw==}
@@ -770,7 +770,7 @@ snapshots:
 
   '@microsoft/tsdoc@0.17.1': {}
 
-  '@rollup/plugin-typescript@11.1.6(rollup@3.30.0)(typescript@5.0.2)':
+  '@rollup/plugin-typescript@11.1.4(rollup@3.30.0)(typescript@5.0.2)':
     dependencies:
       '@rollup/pluginutils': 5.4.0(rollup@3.30.0)
       resolve: 1.22.13
@@ -831,7 +831,7 @@ snapshots:
 
   '@types/node@20.6.2': {}
 
-  '@types/uuid@9.0.8': {}
+  '@types/uuid@9.0.7': {}
 
   '@vitejs/plugin-vue@4.2.3(vite@4.4.5(@types/node@20.6.2))(vue@3.5.44(typescript@5.0.2))':
     dependencies:

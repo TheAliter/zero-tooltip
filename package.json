@@ -26,7 +26,7 @@
     "preview": "vite preview"
   },
   "devDependencies": {
-    "@rollup/plugin-typescript": "^11.1.4",
+    "@rollup/plugin-typescript": "11.1.4",
     "@types/node": "20.6.2",
     "@vitejs/plugin-vue": "4.2.3",
     "typescript": "5.0.2",
@@ -53,8 +53,8 @@
   },
   "homepage": "https://github.com/TheAliter/zero-tooltip#readme",
   "dependencies": {
-    "@types/uuid": "^9.0.7",
-    "uuid": "^9.0.1"
+    "@types/uuid": "9.0.7",
+    "uuid": "9.0.1"
   },
   "peerDependencies": {
     "vue": "^3.0.0"
