@@ -35,7 +35,8 @@ const defaultTooltipBorderWidth = 0
 const defaultTooltipClasses = 'zero-tooltip__fixed zero-tooltip__opacity-0 zero-tooltip__inline-block zero-tooltip__w-fit zero-tooltip__py-1-5 zero-tooltip__px-2-5 zero-tooltip__rounded-md zero-tooltip__bg-gray zero-tooltip__shadow zero-tooltip__box-border'
 const defaultTextClasses = 'zero-tooltip__text-sm zero-tooltip__text-white zero-tooltip__whitespace-pre-wrap zero-tooltip__break-words'
 const defaultArrowSize = 5
-const defaultArrowClasses = 'zero-tooltip__absolute zero-tooltip__border-solid zero-tooltip__border-gray'
+const defaultArrowClasses = 'zero-tooltip__absolute zero-tooltip__border-solid'
+const defaultArrowColor = '#495057'
 const defaultMinArrowOffsetFromTooltipCorner = 6
 const defaultZIndex = 1
 const defaultShouldShow = true
@@ -132,6 +133,7 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
     let textClasses = textElementClass + ' ' + defaultTextClasses + ' ' + (globalConfig?.textClasses ?? '')
     let arrowSize = globalConfig?.arrowSize ?? defaultArrowSize
     let arrowClasses = globalConfig?.arrowClasses ?? ''
+    let arrowColor = globalConfig?.arrowColor ?? defaultArrowColor
     let arrowMinOffsetFromTooltipCorner = globalConfig?.arrowMinOffsetFromTooltipCorner ?? defaultMinArrowOffsetFromTooltipCorner
     let zIndex = globalConfig?.zIndex ?? defaultZIndex
     let shouldShow = defaultShouldShow
@@ -159,6 +161,7 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
         if (localConfig.textClasses !== undefined) textClasses = textElementClass + ' ' + defaultTextClasses + ' ' + localConfig.textClasses
         if (localConfig.arrowSize !== undefined) arrowSize = localConfig.arrowSize
         if (localConfig.arrowClasses !== undefined) arrowClasses = localConfig.arrowClasses
+        if (localConfig.arrowColor !== undefined) arrowColor = localConfig.arrowColor
         if (localConfig.arrowMinOffsetFromTooltipCorner !== undefined) arrowMinOffsetFromTooltipCorner = localConfig.arrowMinOffsetFromTooltipCorner
         if (localConfig.zIndex !== undefined) zIndex = localConfig.zIndex
         if (localConfig.showDelay !== undefined) showDelay = localConfig.showDelay
@@ -185,6 +188,7 @@ function getTooltipConfig(localConfig: string | TooltipLocalConfig, globalConfig
         textClasses,
         arrowSize,
         arrowClasses,
+        arrowColor,
         arrowMinOffsetFromTooltipCorner,
         zIndex,
         shouldShow,
@@ -652,6 +656,16 @@ function drawArrow(anchorElementRect: DOMRect, currentTooltipPosition: TooltipPo
     arrowElement.style.top = `${arrowTop}px`
     arrowElement.style.left = `${arrowLeft}px`
     arrowElement.style.borderWidth = `${tooltipConfig.arrowSize}px`
+
+    // Only color the visible border side, otherwise inline color would override transparent sides and render a square
+    const visibleBorderColorProperty = {
+        left: 'borderLeftColor',
+        top: 'borderTopColor',
+        right: 'borderRightColor',
+        bottom: 'borderBottomColor',
+    } as const
+
+    arrowElement.style[visibleBorderColorProperty[currentTooltipPosition]] = tooltipConfig.arrowColor
 
     // Mount Arrow element
     tooltipElement.appendChild(arrowElement)

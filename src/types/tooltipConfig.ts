@@ -63,6 +63,11 @@ type TooltipConfig = {
     arrowClasses?: string,
 
     /**
+     * Arrow color as any CSS color value (e.g. `#ff0000`, `red`, `rgb(255, 0, 0)`, `var(--primary)`)
+     */
+    arrowColor?: string,
+
+    /**
      * Minimal allowed arrow offset in `px` from tooltip corner. Used in situations when tooltip does not have enough space to be centered relative to element that is being hover, thus arrow is rendered closer to one of the tooltip corners
      */
     arrowMinOffsetFromTooltipCorner?: number,

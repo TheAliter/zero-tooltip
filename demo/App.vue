@@ -2,6 +2,57 @@
     <div style="padding: 20px;">
         <h1 style="text-align: center;">Playground</h1>
 
+        <div style="margin: 72px auto 96px; max-width: 820px;">
+            <h2 style="margin-bottom: 0;">Arrow color</h2>
+            <p style="margin-top: 8px;">Always-on tooltips. The first uses the default <code>#495057</code>. The others pass any CSS color through <code>arrowColor</code>.</p>
+
+            <div style="display: flex; gap: 88px; justify-content: center; margin-top: 72px;">
+                <button v-tooltip="{
+                    content: 'Default',
+                    defaultPosition: 'top',
+                    alwaysOn: true,
+                }">
+                    Default
+                </button>
+
+                <button v-tooltip="{
+                    content: 'left',
+                    arrowColor: '#e11d48',
+                    defaultPosition: 'left',
+                    alwaysOn: true,
+                }">
+                    left
+                </button>
+
+                <button v-tooltip="{
+                    content: 'top',
+                    arrowColor: 'rgb(37, 99, 235)',
+                    defaultPosition: 'top',
+                    alwaysOn: true,
+                }">
+                    top
+                </button>
+
+                <button v-tooltip="{
+                    content: 'right',
+                    arrowColor: 'green',
+                    defaultPosition: 'right',
+                    alwaysOn: true,
+                }">
+                    right
+                </button>
+
+                <button v-tooltip="{
+                    content: 'bottom',
+                    arrowColor: 'var(--demo-arrow)',
+                    defaultPosition: 'bottom',
+                    alwaysOn: true,
+                }">
+                    bottom
+                </button>
+            </div>
+        </div>
+
         <!-- TOP-LEFT button -->
         <button v-tooltip="{
             content: 'Bottom right',
@@ -269,6 +320,10 @@
 </script>
 
 <style>
+    :root {
+        --demo-arrow: #7c3aed;
+    }
+
     p {
         margin: 0;
         padding: 0;

@@ -43,10 +43,6 @@
   border-style: solid;
 }
 
-.zero-tooltip__border-gray {
-  border-color: #495057;
-}
-
 .zero-tooltip__border-x-transparent {
   border-left-color: transparent;
   border-right-color: transparent;
