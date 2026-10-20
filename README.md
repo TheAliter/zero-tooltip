@@ -74,6 +74,7 @@ const tooltipConfig: ZeroTooltipConfig = {
     textClasses: ... ,
     arrowSize: ... ,
     arrowClasses: ... ,
+    arrowColor: ... ,
     arrowMinOffsetFromTooltipCorner: ... ,
     zIndex: ... ,
     showDelay: ... ,
@@ -109,6 +110,7 @@ const tooltipConfig: ZeroTooltipLocalConfig = reactive({
     textClasses: ... ,
     arrowSize: ... ,
     arrowClasses: ... ,
+    arrowColor: ... ,
     arrowMinOffsetFromTooltipCorner: ... ,
     zIndex: ... ,
     show: ... ,
@@ -134,6 +136,7 @@ const tooltipConfig: ZeroTooltipLocalConfig = reactive({
 | textClasses | *undefined* | string | List of classes that will be added to text element |
 | arrowSize | *5* | number | Length of arrow hypotenuse in `px` (arrow is generated using border width property, creating square which gets divided in four triangles, thus `arrowSize` is length of square side) |
 | arrowClasses | *undefined* | string | List of classes that will be added to arrow element |
+| arrowColor | *undefined* | string | Arrow color as hex value (e.g. `#ff0000`) or CSS variable (`var(--primary)` or `--primary`). Takes precedence over border color set through `arrowClasses` |
 | arrowMinOffsetFromTooltipCorner | *6* | number | Minimal allowed arrow offset in `px` from tooltip corner. Used in situations when tooltip does not have enough space to be centered relative to element that is being hover, thus arrow is rendered closer to one of the tooltip corners |
 | zIndex | *1* | number &#124; string | `z-index` css property value of tooltip |
 | showDelay | *0* | number | Delay in milliseconds after which to show tooltip while hovering over element |
