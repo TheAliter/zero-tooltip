@@ -312,7 +312,10 @@ async function onMouseEnter(
     if (_showDelay > 0) {
         await new Promise(resolve => setTimeout(resolve, _showDelay))
 
-        if (!tooltips[uuid].mouseEventState.isHoveringOverAnchorElement || tooltips[uuid].mouseEventState.currentInstanceId !== currentInstanceId) return
+        if (tooltips[uuid] === undefined
+            || !tooltips[uuid].mouseEventState.isHoveringOverAnchorElement
+            || tooltips[uuid].mouseEventState.currentInstanceId !== currentInstanceId)
+            return
     }
 
     const didMountTooltip = mountTooltipElement(anchorElement, tooltipConfig, tooltipElement)
